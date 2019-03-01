@@ -1,0 +1,9 @@
+[Desktop Entry]
+Icon=text-x-script
+Name=autorun-scriptd
+Comment=Autostart user scripts from ~/.autorun-script.d
+Exec=/usr/bin/autorun-scriptd.sh
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=false

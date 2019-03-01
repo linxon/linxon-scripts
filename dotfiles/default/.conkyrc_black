@@ -1,0 +1,89 @@
+conky.config = {
+	alignment = 'top_right',
+	background = false,
+	border_width = 0,
+	border_outer_margin = 5,
+	cpu_avg_samples = 2,
+	default_color = 'black',
+	default_outline_color = 'white',
+	default_shade_color = 'white',
+	double_buffer = true,
+	draw_borders = false,
+	draw_graph_borders = true,
+	draw_outline = false,
+	draw_shades = true,
+	use_xft = true,
+	font = 'Ubuntu:size=9',
+	gap_x = 6,
+	gap_y = 6,
+	minimum_height = 200,
+	minimum_width = 100,
+	net_avg_samples = 2,
+	no_buffers = true,
+	out_to_console = false,
+	out_to_stderr = false,
+	extra_newline = false,
+	own_window = true,
+	own_window_class = 'Conky',
+	own_window_transparent = true,
+	own_window_type = 'override',
+	stippled_borders = 0,
+	update_interval = 0.5,
+	uppercase = false,
+	use_spacer = 'none',
+	show_graph_scale = false,
+	show_graph_range = false,
+}
+
+conky.text = [[
+${color #000000}${font Ubuntu:style=bold:size=10}Оперативная система $hr${color black}
+${font Ubuntu:size=9}[${sysname}] ${kernel}: ${alignr} ${machine}
+Имя компьютера: $alignr $nodename
+Время работы: $alignr $uptime
+
+${color #000000}${font Ubuntu:style=bold:size=10}Сеть $hr${color black}
+${font Ubuntu:size=9}${if_up net0}Загрузка: $alignr ${downspeed net0} / ${totaldown net0}
+Отдача: $alignr ${upspeed net0} / ${totalup net0}${endif}
+
+${color #000000}${font Ubuntu:style=bold:size=10}Процессор $hr${color black}
+${font Ubuntu:size=9}Температура: $alignr ${exec echo $(($(cat /sys/devices/platform/it87.552/hwmon/hwmon1/temp2_input | grep -oE "^[0-9]{1,}")/1000))}°C
+${font Ubuntu:size=9}Куллер: $alignr ${exec echo $(cat /sys/devices/platform/it87.552/hwmon/hwmon1/fan1_input | grep -oE "^[0-9]{1,}")} rpm
+${cpugraph}
+${font Ubuntu:size=9}${top name 1}$alignr${top cpu 1}%
+${top name 2}$alignr${top cpu 2}%
+${top name 3}$alignr${top cpu 3}%
+${top name 4}$alignr${top cpu 4}%
+${top name 5}$alignr${top cpu 5}%
+${top name 6}$alignr${top cpu 6}%
+${top name 7}$alignr${top cpu 7}%
+${top name 8}$alignr${top cpu 8}%
+#${top name 9}$alignr${top cpu 9}%
+#${top name 10}$alignr${top cpu 10}%
+
+${color #000000}${font Ubuntu:style=bold:size=10}Видеокарта $hr${color black}
+${font Ubuntu:size=9}Температура: $alignr ${exec nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader | grep -oE "^[0-9]{1,}"}°C
+${font Ubuntu:size=9}Память: $alignr ${exec nvidia-smi --query-gpu=memory.used --format=csv,noheader} / ${exec nvidia-smi --query-gpu=memory.total --format=csv,noheader}
+${font Ubuntu:style=bold:size=9}
+${color #000000}Топ RAM процессы $hr${color black}
+${font Ubuntu:size=9}${top_mem name 1}$alignr${top_mem mem 1}%
+${top_mem name 2}$alignr${top_mem mem 2}%
+${top_mem name 3}$alignr${top_mem mem 3}%
+${top_mem name 4}$alignr${top_mem mem 4}%
+${top_mem name 5}$alignr${top_mem mem 5}%
+${top_mem name 6}$alignr${top_mem mem 6}%
+#${top_mem name 7}$alignr${top_mem mem 7}%
+#${top_mem name 8}$alignr${top_mem mem 9}%
+#${top_mem name 10}$alignr${top_mem mem 10}%
+
+${color #000000}${font Ubuntu:style=bold:size=10}Память & Диски $hr${color black}
+${font}ROOT [$fs_type] $alignc ${fs_used /} / ${fs_size /} $alignr ${fs_used_perc /}%
+${fs_bar /}
+HOME [$fs_type] $alignc ${fs_used /home} / ${fs_size /home} $alignr ${fs_used_perc /home}%
+${fs_bar /home}
+RAM $alignc $mem / $memmax $alignr $memperc%
+${membar} 
+SWAP $alignc $swap / $swapmax $alignr $swapperc%
+${swapbar}
+SSD [R/W] $alignr ${diskio_read /dev/sda}/ ${diskio_write /dev/sda}
+${diskiograph_write /dev/sda}
+]]

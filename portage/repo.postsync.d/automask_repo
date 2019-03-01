@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+#####################################################
+# Данный скрипт автоматически маскирует
+# репозитории, которые были недавно подключены, чтобы
+# предотвратить гонку версий пакетов и запретить
+# установку сомнительного ПО
+#####################################################
+
+_REPONAME=${1}
+_PMASK_FILEPATH="${AUTOMASK_REPO_MASKFILE:=/etc/portage/package.mask/overlays.list}"
+_PMASK_EXCLUDE_FILEPATH="${AUTOMASK_REPO_EXFILE:=/etc/portage/exclude_mask_overlays}"
+
+_C_RED='\033[0;31m'
+_C_GREEN='\033[0;32m'
+_C_YELLOW='\033[33m'
+_C_NC='\033[0m'
+
+_SKIPPED=0
+_MASKED=0
+_UNMASKED=0
+
+_RET=0
+
+if [ -f "/usr/share/eselect/modules/repository.eselect" ]; then
+	_LS_AVALIBLE_REPO=$(eselect repository list -i | cut -d' ' -f4)
+else
+	echo -e "${_C_RED} * ${_C_NC}automask_repo: ${_C_GREEN}repository.eselect${_C_NC} module is not found."
+	exit 1
+fi
+
+_is_excluded() {
+	local overlay=$1
+
+	if [ ! -f "${_PMASK_EXCLUDE_FILEPATH}" ]; then
+		return 1
+	fi
+	
+	for ex_overlay in $(cat "${_PMASK_EXCLUDE_FILEPATH}"); do
+		if [[ "${ex_overlay}" == "${overlay}" ]]; then
+			if [ -f "${_PMASK_FILEPATH}" ]; then
+				for atom in $(cat "${_PMASK_FILEPATH}"); do
+				if [[ "${atom}" == "*/*::${ex_overlay}" ]]; then
+						if sed -e "/\*\/\*::${ex_overlay}/d" -i "${_PMASK_FILEPATH}" > /dev/null 2>&1; then
+								_MASKED=1
+						fi
+						_UNMASKED=2
+						return
+					fi
+				done
+			fi
+
+			if [ ${_MASKED} == 0 ]; then
+				_SKIPPED=3
+			fi
+
+			return
+		fi
+	done
+
+	return 1
+}
+
+_is_avalible() {
+	local overlay=$1
+
+	if [ -f "${_PMASK_FILEPATH}" ]; then
+		for atom in $(cat "${_PMASK_FILEPATH}"); do
+			if [[ "${atom}" == "*/*::${overlay}" ]]; then
+				_MASKED=1
+				return
+			fi
+		done
+	fi
+
+	return 1
+}
+
+_cleanup() {
+	local masked_repo
+	local to_remove=0
+
+	if [ ! -f "${_PMASK_FILEPATH}" ]; then
+		return 1
+	fi
+
+	for masked_repo in $(cat "${_PMASK_FILEPATH}"); do
+		for av_repo in ${_LS_AVALIBLE_REPO}; do
+			if [[ "*/*::${av_repo}" == "${masked_repo}" ]]; then
+				to_remove=0
+				break
+			else
+				to_remove=1
+			fi
+		done
+
+		if [ "${to_remove}" == 1 ]; then
+			masked_repo=${masked_repo//\*\/\*\:\:}
+			echo -e "${_C_GREEN} * ${_C_NC}automask_repo: ${_C_RED}${masked_repo}${_C_NC} [${_C_YELLOW}Removed${_C_NC}]"
+			sed -e "/\*\/\*::${masked_repo}/d" \
+				-i "${_PMASK_FILEPATH}" > /dev/null 2>&1 || _RET=1
+		fi
+	done
+}
+
+if [ "${_REPONAME}" != "gentoo" ]; then
+	_cleanup
+
+	echo -ne "${_C_GREEN} * ${_C_NC}automask_repo: ${_C_RED}${_REPONAME}${_C_NC} "
+	if _is_excluded ${_REPONAME}; then
+		case $((${_UNMASKED} + ${_SKIPPED})) in
+			2) echo -e "[${_C_YELLOW}Unmasked${_C_NC}]";;
+			3) echo -e "[${_C_GREEN}Skip${_C_NC}]";;
+			5) echo -e "[${_C_YELLOW}WTF?${_C_NC}]" && _RET=1;;
+		esac
+		exit 0
+	elif _is_avalible ${_REPONAME}; then
+		case ${_MASKED} in
+			1) echo -e "[${_C_GREEN}Already masked${_C_NC}]";;
+		esac
+		exit 0
+	fi
+
+	echo -e "[${_C_GREEN}Added${_C_NC}]"
+	echo "*/*::${_REPONAME}" >> "${_PMASK_FILEPATH}" || _RET=1
+fi
+
+exit "${_RET}"

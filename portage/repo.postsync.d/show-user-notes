@@ -1,0 +1,14 @@
+#!/bin/sh
+
+_NOTE_FILE="${USER_NOTES_FILEPATH:=/etc/portage/user-notes}"
+
+if [ ! -f "${_NOTE_FILE}" ]; then
+	touch "${_NOTE_FILE}" && {
+		chown root:portage "${_NOTE_FILE}"
+		chmod 0664 "${_NOTE_FILE}"
+	} || exit 1
+fi
+
+echo -e "\033[31m======================== USER NOTES ========================\033[32m"
+cat "${_NOTE_FILE}"
+echo -e "\033[31m====================== END/USER NOTES ======================\033[0m"

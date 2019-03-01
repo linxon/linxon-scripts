@@ -1,0 +1,558 @@
+####################################################################
+## Автор: Yury Martunov (http://www.linxon.ru)
+## E-mail: email@linxon.ru
+## ICQ: 616015333
+## Telegram: https://t.me/linxon
+####################################################################
+
+if [ ! $BASH_VERSINFO -le 4 ]; then
+	verbash=`bash --version | grep -iom 1 "version.* [0-9].."`
+	echo -e "К сожелению, версия BASH ($verbash) - не поддерживается! Для ~/.bash_helpers необходима версия выше 4.x\n"
+	echo "вы можете удалить это сообщение закоментировав первые строки в ~/.bash_helpers"
+fi
+
+if [[ -x /usr/bin/notify-send && "${TERM,,}" == 'xterm' ]]; then
+	# notify-send - доступен
+	IS_NOTIFY=1
+else
+	# notify-send - НЕ доступен
+	IS_NOTIFY=0
+fi
+
+#echo -e "\033[1m\033[32mПолезная информация:"
+#echo ${PATH}
+
+####################################################################
+# Фильтры, которые содержат имена расширения файлов. 
+# Пример их ипользования: mv $_images ~/Pictures - переместить 
+# все файлы из текущей папки с расширениями $_images в папку Pictures
+####################################################################
+_images="+(*.[bB][mM][pP]|*.[iI][cC][oO]|*.[jJ][pP]?([eE])[gG]|*.[jJ][pP][eE]|*.?([aA])[pP][nN][gG]|*.[gG][iI][fF]|*.[aA][nN][iI]|*.[sS][vV][gG]?([zZ])|*.[sS][wW][fF])" && _pics="${_images}"
+_audios="+(*.[mM][pP]+(3|4)|*.[mM]4[aA]|*.[wW][aA][vV]|*.[mM][iI][dD][iI]|*.[oO][gG][gG])" && _music="${_audios}"
+_videos="+(*.[aA][vV][iI]|*.[mM][pP]?(4|[vV])?(2|4|[vV])|*.[fF]+(4|[lL])[vV]|*.[mM][kK][vV]|*.[oO][gG][gG]|*.[mM][oO][vV]|*.[wW][mM][vV]|*.3[gG]2|*.3[gG][pP]?(2|[pP])|*.3[gG]2|*.[rR][eE][cC]|*.[wW][eE][bB][mM]|*.[hH]264|*.[mM]4[vV]|*.[mM][oO][dD]|*.[mM][pP]?([eE])[gG]|*.[mM][tT][sS]|*.[rR][mM]|*.[sS][tT]+([lL]|[rR]))"
+_docs="+(*.[pP][dD][fF]|*.[dD][oO][cC]?([xX])|*.?([fF])[oO]+([tT]|[dD])[tT]|*.[uU][oO][tT]|*.[dD][oO][tT]|*.[rR][tT][fF]|*.[xX][lL][sS]?([xX]|[mM]))"
+_books="+(*.[fF][bB]+(2|3)|*.[fF][bB]+(2|3)\.?([zZ][iI][pP])|*.[pP][dD][fF]|*.[mM][oO][bB][iI]|*.[dD][jJ][vV]|*.[eE][pP][uU][bB])"
+_arch="+(*.[zZ][iI][pP]|*.[rR][aA][rR]|*.[tT][aA][rR]|*.?(7)[zZ]|*.[gG][zZ]|*.[xX][zZ]|*.[jJ][aA][rR]|*.[bB][zZ]2|*.[lL][zZ]|*.[lL][zZ][mM][aA]|*.[lL][zZ][oO]|*.[wW][aA][rR]|*.[aA][rR]|*.[aA][rR][jJ])"
+_webdocs="+(*.?([xX]|[mM]|[iI]|[pP]|[sS])[hH][tT][mM]?([lL])?([0-9])|*.+([mM]|[xX])[hH][tT]|*.?([sS])[cC][sS][sS]?([0-9])|*.[jJ][sS]|*.[pP][hH][pP]?([0-9])|*.[tT][pP][lL]|*.[cC][gG][iI]|*.[aA][sS][pP]?([xX])|*.[bB][mM][lL]|*.[cC][fF][mM]|*.[jJ][sS][pP]|*.[pP][lL]|*.[xX][mM][lL]|*.[sS][gG][mM][lL])"
+#_execs="+(*.[sS][hH]|*.[eE][xX][eE]|*.[dD][lL][lL]|*.[sS][oO]|*.[kK][oO])"
+
+alias @is_ip='grep -E "^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$"'
+alias @eix_in_overlay='grep -E "^(\*|\[(I|U)\]) [0-9a-zA-Z-]{1,}\/[0-9a-zA-Z_-]{1,} \[[0-9]{1,}\]$"'
+
+####################################################################
+# Остальные полезные функции (велосипеды ^^)
+####################################################################
+yesno_ask() {
+	read -r -p "Вы согласны? [y/N] " ASK_RES
+	[[ ${ASK_RES,,} =~ ^(yes|y)$ ]] || return 1
+}
+
+cleanup () {
+
+	case $1 in
+
+		"--chrome") {
+			if [ -d "$HOME/.cache/google-chrome/" ]; then
+				if [ ! -z "`pidof chrome`" ]; then
+					echo "Shutdown google-chrome..." && sleep 5 && killall -q 0 chrome
+				fi
+				echo "Cleaning google-chrome cache..." && sleep 5 && rm -r -v ~/.cache/google-chrome
+			fi
+		};;
+
+		"--firefox") {
+			if [ -d "$HOME/.cache/mozilla/firefox/" ]; then
+				if [ ! -z "`pidof firefox`" ]; then
+					echo "Shutdown firefox..." && sleep 5 && killall -q 0 firefox
+				fi
+				echo "Cleaning firefox cache..." && sleep 5 && rm -r -v ~/.cache/mozilla/firefox/
+			fi
+		};;
+
+		"--thunderbird") {
+			if [ -d "$HOME/.cache/thunderbird/" ]; then
+				if [ ! -z "`pidof thunderbird`" ]; then
+					echo "Shutdown thunderbird..." && sleep 5 && killall -q 0 thunderbird
+				fi
+				echo "Cleaning thunderbird cache..." && sleep 5 && rm -r -v ~/.cache/thunderbird/
+			fi
+		};;
+
+		"--composer") {
+			if [ -d "$HOME/.composer/" ]; then
+				echo "Cleaning composer cache..." && sleep 5 && rm -r -v ~/.composer/cache/files/* ~/.composer/cache/repo/*
+			fi
+		};;
+
+		"--soft-center") {
+				# Software Center
+				if [ -d "$HOME/.cache/software-center/" ]; then
+				
+					echo "Cleaning software center cache..." && sleep 5 
+					
+					echo "    Software icons cache"
+					rm -rf ~/.cache/software-center/icons
+					
+					echo "    Software downloads cache"
+					rm -rf ~/.cache/software-center/download-cache
+					
+					echo "    Software log files"
+					rm -rf ~/.cache/software-center/*.log.* ~/.cache/software-center/*.log
+					
+				fi
+		};;
+
+		"--thumbs") {
+			if [ -d "$HOME/.cache/thumbnails/" ]; then
+				if [ "$2" = "--wipe" ]; then
+					[ -x /usr/bin/wipe ] && echo "(5-sec) Wiping thumbnails cache..." && sleep 5 && wipe -rf ~/.cache/thumbnails/*/*.png ~/.thumbnails/*/*.png
+				else
+					echo "(5-sec) Cleaning thumbnails cache..." && sleep 5 && rm -v -f ~/.cache/thumbnails/*/*.png ~/.thumbnails/*/*.png
+				fi
+				
+			fi
+		};;
+
+		"--help") {
+			echo -e "Список доступных команд:
+			\n	--chrome — \"Для очистки кеша Google Chrome\" 
+			\n	--firefox — \"Очистка кеша браузера Firefox\" 
+			\n	--thunderbird — \"Кеша почтового клиента Thunderbird\"
+			\n	--composer — \"Кеша Composer'a\"
+			\n	--soft-center — \"Очистка кеша Software-center (Ubuntu системы)\"
+			\n	--thumbs — \"Очистка изображений-превьюшек мультимедия (--wipe чтобы удалить навсегда)\"
+			"
+		};;
+
+		*) {
+			echo -e "--help  \"Для получения списка команд\"\n"
+
+			if [ -x /usr/bin/apt-get ]; then
+				echo "Обновление APT репозитория..." && sleep 1
+				sudo apt-get update
+				sudo apt-get upgrade -y
+				
+				echo "Cleaning..." && sleep 1
+				sudo apt-get autoremove -y
+				sudo apt-get autoclean
+				sudo apt-get clean
+			fi
+
+			if [ -x /usr/bin/emerge ]; then 
+
+				[ -x /usr/bin/layman ] && {
+					read -r -p "Запустить синхронизацию каталогов layman? [y/N] " response
+					[[ ${response,,} =~ ^(yes|y)$ ]] && sudo /usr/bin/layman -S
+				}
+
+				[ -x /usr/bin/eix-sync ] && {
+					read -r -p "Запустить синхронизацию каталогов portage? [y/N] " response
+					[[ ${response,,} =~ ^(yes|y)$ ]] && sudo /usr/bin/eix-sync
+				}
+
+				read -r -p "Проверить обновления всех пакетов в @world? [y/N] " response
+				[[ ${response,,} =~ ^(yes|y)$ ]] && sudo /usr/bin/emerge -avuDN --with-bdeps=y @world
+
+				if [ -x /usr/bin/eclean-dist ]; then
+					echo -e "\nУдаление старых исходников в /usr/portage/distfiles..."
+					if $(/usr/bin/id -nG "${USER}" | grep -qw "portage"); then
+						rm -fvi $(eclean-dist -qdp)
+					else
+						[ -x /usr/bin/sudo ] && /usr/bin/sudo rm -fvi $(eclean-dist -qdp) \
+											 || echo "Необходимы права доступа!"
+					fi
+				fi
+			fi
+		};;
+
+	esac
+}
+
+# Создание архивов более простым способом (если торопишься куда-нибудь)
+mktar () { tar cvf  "${1%%/}.tar"     "${1%%/}/"; }
+mktgz () { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }
+mktxz () { tar cJvf "${1%%/}.tar.xz"  "${1%%/}/"; }
+mktbz () { tar cvjf "${1%%/}.tar.bz2" "${1%%/}/"; }
+
+# Автоматическая распаковка файлов
+extract () {
+	if [ -f $1 ] ; then
+		case $1 in
+			*.tar.bz2)   tar xjf $1;;
+			*.tar.gz)    tar xzf $1;;
+			*.tar.xz)    tar xJf $1;;
+			*.bz2)       bunzip2 $1;;
+			*.rar)       rar x $1;;
+			*.gz)        gunzip $1;;
+			*.tar)       tar xf $1;;
+			*.tbz2)      tar xjf $1;;
+			*.tgz)       tar xzf $1;;
+			*.zip)       unzip $1;;
+			*.Z)         uncompress $1;;
+			*.7z)        7z x $1;;
+			*)           echo "'$1' неизветное расширение архива";;
+		esac
+	else
+		echo "'$1' неизвестный файл"
+	fi
+}
+
+# Копировать и переместиться в папку
+cpg () {
+	if [ -d "$2" ];then
+		cp "$1" "$2" && cd "$2"
+	else
+		cp "$1" "$2"
+	fi
+}
+
+# Переместить папку и перейти на нее
+mvg () {
+	if [ -d "$2" ];then
+		mv "$1" "$2" && cd "$2"
+	else
+		mv "$1" "$2"
+	fi
+}
+
+# Создать папку и переместиться к ней
+mkcdr () { mkdir -p "$1" && cd "$1"; }
+
+json-view () { python -m json.tool "$1"; }
+
+download-site () {
+	wget --random-wait -r -p -e robots=off -U mozilla $1
+}
+
+share-this-folder () {
+	python -m SimpleHTTPServer
+}
+
+# Конвентировать кодировку из Win-1251 в UTF-8
+convwin1251toutf8 () {
+	echo "Convert all WEB files from WINDOWS-1251 to UTF-8 on: `pwd`"
+
+	if yesno_ask; then
+		find ./ -name "*.php" -o -name "*.html" -o -name "*.css" -o -name "*.js"  -type f |
+		while read file
+		do
+		  echo "Convert file:  $file"
+		  mv $file $file.icv
+		  iconv -f WINDOWS-1251 -t UTF-8 $file.icv > $file
+		  rm -f $file.icv
+		done
+	fi
+}
+
+# Удалить символические ссылки рекурсивно (для битых ссылок использовать флаг -b)
+rmlinks-beta () {
+
+	WORK_DIR=`pwd`
+
+	[ -d "$1" ] && WORK_DIR=$1
+	[ -d "$2" ] && WORK_DIR=$2
+
+	echo '-------------------------------------'
+	echo -e "\033[1mРекурсивное удаление символических ссылок в директории: \033[33m${WORK_DIR}\033[0m"
+	echo '-------------------------------------'
+	sleep 1
+
+	TEMP=0
+	FIND_STAT=0
+	LINKS=`find "${WORK_DIR}" -type l`
+	
+	case $1 in
+
+		'-b') ## Только для нерабочих ссылок
+
+		for LINK in $(find ${WORK_DIR} -type l); do
+			echo $LINK
+			break
+			if [[ ! -z `file --mime "${LINK}" | grep -oi -m 1 "inode/symlink"` && ! -f "${LINK}" ]]; then
+				echo "Найден: `file \"${LINK}\"`"
+				BR_LINKS="${BR_LINKS} ${LINK}"
+				FIND_STAT=$((FIND_STAT+1))
+			fi
+		done
+
+		if [ ${FIND_STAT} -ge 1 ]; then
+			echo '-------------------------------------'
+			echo -e "\033[1mДля удаления введите - \033[1m\033[31myes\033[0m"
+
+			yesno_ask && {
+				for BR_LINK in $BR_LINKS; do
+					echo -e "\033[1m\033[33m[WAIT] \033[0m\033[32mУдаляем битую ссылку: \033[1m\033[31m${BR_LINK} \033[0m(Ctrl+C - для отмены)" && sleep ${TEMP}
+					unlink "${BR_LINK}"
+				done
+				BR_LINKS=""
+			}
+		fi;;
+
+		*) ## Для всех, всключая рабочие и нерабочие ссылки (осторожно!)
+		
+		for LINK in "${LINKS}"; do
+			if [ -z `file --mime "$LINK" | grep -oi -m 1 "inode/symlink" > /dev/null` ]; then
+				echo "Найден: ${LINK}"
+				BR_LINKS="${BR_LINKS} ${LINK}"
+				FIND_STAT=$((FIND_STAT+1))
+			fi
+		done
+
+		if [ ${FIND_STAT} -ge 1 ]; then
+			echo '-------------------------------------'
+			echo -e "\033[1mДля удаления введите - \033[1m\033[31myes\033[0m"
+
+			yesno_ask && {
+				for BR_LINK in $BR_LINKS; do
+					echo -e "\033[1m\033[33m[WAIT] \033[0m\033[32mУдаляем ссылку: \033[1m\033[31m${BR_LINK} \033[0m(Ctrl+C - для отмены)" && sleep ${TEMP}
+					unlink "${BR_LINK}"
+				done
+				BR_LINKS=""
+			}
+		fi;;
+
+	esac
+
+	if [ "${FIND_STAT}" == '0' ]; then
+		echo -e "\033[1m\033[32m[OK] \033[0mСимволические ссылки не найдены"
+	fi
+
+}
+rmlinks () {
+
+	echo '-------------------------------------'
+	echo -e "\033[1mRemove recursive symlinks on: \033[33m`pwd`/*\033[0m (current folder)"
+	
+	sleep 1
+
+	if yesno_ask; then
+
+		case $1 in
+
+			## For only Broken symlinks
+			'-b')	find "$(pwd)" -type l |
+			while read linkname
+			do
+				if [ ! -z `file --mime "$linkname" | grep -oi -m 1 "inode/symlink"` ] && [ ! -f "$linkname" ]; then
+					echo -e "\033[32mRemoving broken symlink: \033[31m$linkname @"
+					unlink "$linkname"
+				fi
+			done;;
+
+			## All symlinks
+			*)	find "$(pwd)" -type l |
+			while read linkname
+			do
+				if [ ! -z `file --mime "$linkname" | grep -oi -m 1 "inode/symlink"` ]; then
+					echo -e "\033[32mRemoving symlink: \033[31m$linkname @"
+					unlink "$linkname"
+				fi
+			done;;
+
+		esac
+
+	fi
+}
+
+# Копировать путь файла или папки в буфер обмена
+pcopy() {
+	[ -x /usr/bin/xclip ] && {
+		if [[ -d "$1" || -f "$1" ]]; then
+			echo "Путь: $(readlink -f "$1")" && echo -n $(readlink -f "$1") | xclip -selection "clipboard"
+			[ -x /usr/bin/notify-send ] && notify-send --urgency=low -i "$([ $? = 0 ] && echo xfce4-clipman-plugin)" "Скопирован в буфер обмена как:" $(readlink -f "$1")
+		else
+			echo "Путь: $(pwd)" && echo -n $(pwd) | xclip -selection "clipboard"
+			[ -x /usr/bin/notify-send ] && notify-send --urgency=low -i "$([ $? = 0 ] && echo xfce4-clipman-plugin)" "Скопирован в буфер обмена как:" $(pwd)
+		fi
+	} || echo "Необходим пакет: xClip"
+}
+
+initvbox() {
+	[ -x /usr/bin/VirtualBox ] && {
+		if [[ $(lsmod | grep -io vboxdrv) != "" ]] || [[ $(lsmod | grep -io vboxnetflt) != "" ]] || [[ $(lsmod | grep -io vboxnetadp) != "" ]]; then
+			sudo rmmod vboxnetadp && sudo rmmod vboxnetflt && sudo rmmod vboxdrv
+		fi
+		sudo modprobe vboxdrv && sudo modprobe vboxnetadp && sudo modprobe vboxnetflt
+	}
+}
+
+rsha256sum() {
+	
+	TMP_FOLDER="${HOME}/.cache/rsha256sum/"
+	
+	[ ! -d ${TMP_FOLDER} ] && {
+		mkdir ${TMP_FOLDER}
+	}
+	
+	HOST="${1}"
+	FILES="${2}"
+
+	for FILE in ${FILES}; do
+		scp ${HOST}:${FILE} ${TMP_FOLDER} > /dev/null && {
+
+			CURR_PATH="${TMP_FOLDER}$(basename "$FILE")"
+			[ -f ${CURR_PATH} ] && {
+				echo "Checking: $HOST:${FILE}"
+				sha256sum ${CURR_PATH} && rm -f ${CURR_PATH}
+			} || echo "Файл не найден" && continue
+
+		} || echo "Файл не найден" && continue
+	done
+}
+
+check_addr() {
+	DELAY=1
+	STAT=0
+	[ -z "$2" ] || DELAY=$2
+	echo -e "\033[32m-> Отправка ICMP пакета...\033[0m"
+	while [ 1 ]; do
+		STAT=$((STAT + 1))
+		echo -n "${STAT}:"
+		sleep ${DELAY}
+		if $(ping -c 1 -W 1 $1 > /dev/null); then
+			echo -e "\n\033[1m\033[32m[OK]  \033[0m\033[47m\033[30m$1\033[0m\033[33m - в сети!"
+			alert "$1 - в сети!"
+			return 0
+		else
+			#echo -e "\033[1m\033[31m[ERR] \033[0m\033[47m\033[30m$1\033[0m\033[33m - не в сети!"
+			continue
+		fi
+	done
+}
+
+## Ненужно, есть прекрасный пакет: MAT
+#wipe-allminfo() {
+#
+#	if ! [ -x /usr/bin/exiftool ]; then
+#		echo "Необходим пакет - exiftool"
+#		exit
+#	fi
+#
+#	SPACE_BAR1="         "
+#	SPACE_BAR2="    "
+#	for IMAGE in "$@"; 
+#	do
+#		[ -f "${IMAGE}" ] && {
+#			echo -e "\033[1m\033[33mОчистка META информации: \033[0m\033[30m\033[47m${IMAGE}\033[0m"
+#
+#			N_NAME="`md5sum "${IMAGE}" | head -c 32`.${IMAGE##*.}"
+#			echo "${SPACE_BAR2}Новое имя: \"${N_NAME}\""
+#			exiftool -q -all= "${IMAGE}" -o "${N_NAME}" && echo -e "${SPACE_BAR1}... \033[32mготово!\033[0m" || {
+#				echo -e "${SPACE_BAR1}... \033[41mошибка!\033[0m"
+#				continue
+#			}
+#			
+#			#echo "${SPACE_BAR2}Новое имя: \"${N_NAME}.${IMAGE##*.}\""
+#			#mv -f "${IMAGE}" "${N_NAME}.${IMAGE##*.}" && echo -e "${SPACE_BAR1}... \033[32mготово!\033[0m" || echo -e "${SPACE_BAR1}... \033[41mошибка!\033[0m"
+#		} || break
+#	done
+#}
+#mat-clean() {
+#	if test -x /usr/bin/mat; then
+#		if ! [ -z "${@}" ]; then
+#			/usr/bin/mat $@ && {
+#				if [ $IS_NOTIFY -eq 1 ]; then
+#					notify-send --urgency=low -i "$([ $? = 0 ] && echo dialog-ok-apply || echo dialog-error)" "$([ $? = 0 ] && echo 'Готово' || echo 'Ошибка')" "$([ $? = 0 ] && echo 'META-данные были очищены' || echo 'Ошибк во время очистки META-данных')"
+#				fi
+#			}
+#		else
+#			echo "Недостаточно аргументов"
+#		fi
+#	else
+#		echo "Ошибка: отсутствует требуемый пакет: \"emerge -av mat/apt install mat\""
+#		if [ $IS_NOTIFY -eq 1 ]; then
+#			notify-send --urgency=low -i "dialog-error" "Ошибка" "Отсутствует требуемый пакет: \"emerge -av mat/apt install mat\""
+#		fi
+#	fi
+#}
+
+rmsecure_here() {
+	yesno_ask && {
+		find . -type f -iname "$@" -exec shred -v -z -n 25 -- {} \; -exec wipe -rf -- {} \;
+	}
+}
+
+conv2mp3() {
+	if [ -x /usr/bin/ffmpeg ]; then
+		for filepath in "$@"; do
+			if [[ -f "$filepath" ]]; then
+				ffmpeg -i "$filepath" -f mp3 -ab 320000 -vn -- "${filepath%.*}.mp3"
+			else
+				echo "Ошибка: Необходимо путь к *.mp4"
+			fi
+		done
+	else
+		echo "Для работы необходим ffmpeg последней версии..."
+	fi
+}
+conv2m4a() {
+	if [ -x /usr/bin/ffmpeg ]; then
+		for filepath in "$@"; do
+			if [[ -f "$filepath" ]]; then
+				ffmpeg -i "$filepath" -c:a libfdk_aac -b:a 128k "${filepath%.*}.m4a"
+			else
+				echo "Ошибка: Необходимо путь к медиафайлу"
+			fi
+		done
+	else
+		echo "Для работы необходим ffmpeg последней версии..."
+	fi
+}
+
+# Узнать "внешний" IP
+myip() {
+	echo $(curl -s ifconfig.co)
+}
+
+# Конвертация видео файлов в gif
+vid2gif() {
+	local work_dir="/tmp/ffmpeg_frames"
+	SCALE="320"
+
+	echo "Конвертировать ${1} в GIF?"
+	yesno_ask && {
+		[ -f "${1}" ] || { 
+			echo "${1} — не найден!"
+			return 1
+		}
+
+		if [ -n "${2}"  ]; then
+			SCALE="${2}"
+		fi
+
+		mkdir "${work_dir}" > /dev/null
+		ffmpeg -i "${1}" -vf scale=${SCALE}:-1:flags=lanczos,fps=10 "${work_dir}"/ffout%03d.png
+
+		convert -loop 0 "${work_dir}"/ffout*.png "$(echo ${1} | sed 's/\.[^.]*$//').gif"
+		rm -f "${work_dir}"/ffout*.png
+	}
+}
+
+# Генератор паролей
+genpass() {
+	local ex_bin="/usr/bin/openssl"
+	local def_count=18
+
+	[ -n "${1}" ] && def_count="${1}"
+
+	if [ -x ${ex_bin} ]; then
+		${ex_bin} rand -base64 ${def_count}
+	else
+		echo "Для работы необходим пакет: dev-libs/openssl"
+	fi
+}
+
+# Позволяет переименовывать файл используя хеш  в качестве имени (Нужно будет доработать!)
+rename-to-md5() {
+	if [ -f "$@" ]; then
+		for FILENAME in "$@"; do
+			MD5_HASH=$(md5sum "$FILENAME" | head -c 32)
+			mv -v "$FILENAME" "${MD5_HASH}.${FILENAME##*.}"
+		done
+	fi
+}
+
+cdcd() {
+	local curr_pwd="$(pwd)"
+	cd .. && cd "${curr_pwd}"
+}

@@ -1,0 +1,7 @@
+[user]
+	email = email@linxon.ru
+	name = Yury Martynov
+[diff]
+	tool = meld
+[merge]
+	tool = meld
