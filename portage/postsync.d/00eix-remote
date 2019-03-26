@@ -1,0 +1,4 @@
+#!/bin/sh
+
+[ -x /usr/bin/eix-remote ] && eix-remote update1
+
