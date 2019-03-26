@@ -570,7 +570,7 @@ update-containers() {
 	UPDATE_CONTAINERS_BACKUP_DIRS+=( )
 
 	for x in $(ls "${UPDATE_CONTAINERS_TARGET_DIR}"); do
-		if [[ "$(file -i ${x} | cut -d' ' -f2)" == "application/octet-stream;" ]]; then
+		if [[ "$(file -i "${UPDATE_CONTAINERS_TARGET_DIR}"/${x} | cut -d' ' -f2)" == "application/octet-stream;" ]]; then
 			sha256sum "${UPDATE_CONTAINERS_TARGET_DIR}"/${x} >> "${tempfile}" || {
 				echo "Ошибка во время генерации хешсумм для ${x}"
 				exit 1
