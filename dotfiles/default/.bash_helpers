@@ -5,6 +5,10 @@
 ## Telegram: https://t.me/linxon
 ####################################################################
 
+if [ "$TERM" != dumb ] && [ -f ~/.bash_env ]; then
+	source ~/.bash_env
+fi
+
 if [ ! $BASH_VERSINFO -le 4 ]; then
 	verbash=`bash --version | grep -iom 1 "version.* [0-9].."`
 	echo -e "К сожелению, версия BASH ($verbash) - не поддерживается! Для ~/.bash_helpers необходима версия выше 4.x\n"
@@ -43,7 +47,8 @@ alias @eix_in_overlay='grep -E "^(\*|\[(I|U)\]) [0-9a-zA-Z-]{1,}\/[0-9a-zA-Z_-]{
 # Остальные полезные функции (велосипеды ^^)
 ####################################################################
 yesno_ask() {
-	read -r -p "Вы согласны? [y/N] " ASK_RES
+	YESNO_ASK_MSG="${YESNO_ASK_MSG:-"Вы согласны?"}"
+	read -r -p "${YESNO_ASK_MSG} [y/N] " ASK_RES
 	[[ ${ASK_RES,,} =~ ^(yes|y)$ ]] || return 1
 }
 
@@ -555,4 +560,39 @@ rename-to-md5() {
 cdcd() {
 	local curr_pwd="$(pwd)"
 	cd .. && cd "${curr_pwd}"
+}
+
+update-containers() {
+	local tempfile="$(mktemp)"
+
+	UPDATE_CONTAINERS_TARGET_DIR="${UPDATE_CONTAINERS_TARGET_DIR:-~/Containers}"
+	UPDATE_CONTAINERS_SAVE_HASH_INTO+=( )
+	UPDATE_CONTAINERS_BACKUP_DIRS+=( )
+
+	for x in $(ls "${UPDATE_CONTAINERS_TARGET_DIR}"); do
+		if [[ "$(file -i ${x} | cut -d' ' -f2)" == "application/octet-stream;" ]]; then
+			sha256sum "${UPDATE_CONTAINERS_TARGET_DIR}"/${x} >> "${tempfile}" || {
+				echo "Ошибка во время генерации хешсумм для ${x}"
+				exit 1
+			}
+		fi
+	done
+
+	for x in ${UPDATE_CONTAINERS_SAVE_HASH_INTO[@]}; do
+		if [ -d $(dirname ${x}) ]; then
+			cat "${tempfile}" > "${x}" || {
+				echo "Ошибка во время обновления файла ${x}"
+				exit 1
+			}
+		fi
+	done && rm -f "${tempfile}"
+
+	for x in ${UPDATE_CONTAINERS_BACKUP_DIRS[@]}; do
+		if [ -d "${x}" ]; then
+			echo "Обновить: ${x}"
+			yesno_ask \
+				&& YESNO_ASK_MSG="${x}???" yesno_ask \
+				&& rsync -azP --delete "${UPDATE_CONTAINERS_TARGET_DIR}/" "${x}"
+		fi
+	done
 }

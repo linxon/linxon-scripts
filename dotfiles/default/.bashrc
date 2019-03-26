@@ -115,9 +115,6 @@ if [ "${TERM}" != dumb ] && [[ -x /usr/bin/startxfce4 && "${IS_ROOT}" != "1" ]];
 		echo -e "\033[32mЗапуск команды: \033[4m/usr/bin/startxfce4 --with-ck-launch\033[0m\033[32m"
 		echo -en "\033[32mНажмите Ctrl+C для отмены\033[31m"
 
-		## Иногда в dmesg сыпятся вот такие сообщения. Возможно, какая-то бага
-		## ...
-		## traps: ck-remove-direc[5074] trap int3 ip:7f292afb3011 sp:7fff97038d60 error:0
 		trap 'CANCEL_STAT=1' SIGINT
 
 		while true; do
