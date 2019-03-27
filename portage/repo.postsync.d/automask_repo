@@ -28,28 +28,38 @@ else
 	exit 1
 fi
 
+_update_maskfile() {
+	local reponame="${1}"
+	if grep -qE "^\*/\*::${reponame}$" "${_PMASK_FILEPATH}" > /dev/null 2>&1; then
+		sed -e "/^\*\/\*::${reponame}$/d" -i "${_PMASK_FILEPATH}" > /dev/null 2>&1
+	else
+		return 1
+	fi
+}
+
 _is_excluded() {
 	local overlay=$1
-
 	if [ ! -f "${_PMASK_EXCLUDE_FILEPATH}" ]; then
 		return 1
 	fi
 	
 	for ex_overlay in $(cat "${_PMASK_EXCLUDE_FILEPATH}"); do
 		if [[ "${ex_overlay}" == "${overlay}" ]]; then
-			if [ -f "${_PMASK_FILEPATH}" ]; then
-				for atom in $(cat "${_PMASK_FILEPATH}"); do
-				if [[ "${atom}" == "*/*::${ex_overlay}" ]]; then
-						if sed -e "/\*\/\*::${ex_overlay}/d" -i "${_PMASK_FILEPATH}" > /dev/null 2>&1; then
-								_MASKED=1
-						fi
-						_UNMASKED=2
-						return
-					fi
-				done
+			if ! [ -f "${_PMASK_FILEPATH}" ]; then
+				return 1
 			fi
 
-			if [ ${_MASKED} == 0 ]; then
+			for atom in $(cat "${_PMASK_FILEPATH}"); do
+				if [[ "${atom}" == "*/*::${ex_overlay}" ]]; then
+					if _update_maskfile "${ex_overlay}"; then
+						_UNMASKED=2
+					fi
+
+					return
+				fi
+			done
+
+			if (( ${_UNMASKED} == 0 )); then
 				_SKIPPED=3
 			fi
 
@@ -93,11 +103,11 @@ _cleanup() {
 			fi
 		done
 
-		if [ "${to_remove}" == 1 ]; then
+		if (( ${to_remove} == 1 )); then
 			masked_repo=${masked_repo//\*\/\*\:\:}
-			echo -e "${_C_GREEN} * ${_C_NC}automask_repo: ${_C_RED}${masked_repo}${_C_NC} [${_C_YELLOW}Removed${_C_NC}]"
-			sed -e "/\*\/\*::${masked_repo}/d" \
-				-i "${_PMASK_FILEPATH}" > /dev/null 2>&1 || _RET=1
+			if _update_maskfile ${masked_repo}; then
+				echo -e "${_C_GREEN} * ${_C_NC}automask_repo: ${_C_RED}${masked_repo}${_C_NC} [${_C_YELLOW}Removed${_C_NC}]"
+			fi
 		fi
 	done
 }
@@ -112,16 +122,15 @@ if [ "${_REPONAME}" != "gentoo" ]; then
 			3) echo -e "[${_C_GREEN}Skip${_C_NC}]";;
 			5) echo -e "[${_C_YELLOW}WTF?${_C_NC}]" && _RET=1;;
 		esac
-		exit 0
 	elif _is_avalible ${_REPONAME}; then
 		case ${_MASKED} in
 			1) echo -e "[${_C_GREEN}Already masked${_C_NC}]";;
 		esac
-		exit 0
+	else
+		echo "*/*::${_REPONAME}" >> "${_PMASK_FILEPATH}" \
+			&& echo -e "[${_C_GREEN}Added${_C_NC}]" \
+			|| _RET=1
 	fi
-
-	echo -e "[${_C_GREEN}Added${_C_NC}]"
-	echo "*/*::${_REPONAME}" >> "${_PMASK_FILEPATH}" || _RET=1
 fi
 
 exit "${_RET}"
