@@ -596,3 +596,13 @@ update-containers() {
 		fi
 	done
 }
+
+using-env-here() {
+	local fhs_pwd=$(pwd)
+
+	export PATH="${fhs_pwd}/usr/sbin:${fhs_pwd}/usr/bin:${fhs_pwd}/sbin:${fhs_pwd}/bin:${fhs_pwd}/opt/bin:${PATH}"
+	export XDG_DATA_DIRS="${fhs_pwd}/usr/local/share:${fhs_pwd}/usr/share:${fhs_pwd}/usr/share:${XDG_DATA_DIRS}"
+	export XDG_CONFIG_DIRS="${fhs_pwd}/etc/xdg:${fhs_pwd}/etc/xdg:${XDG_CONFIG_DIRS}"
+	export MANPATH="${fhs_pwd}/usr/share/man:${MANPATH}"
+	export INFOPATH="${fhs_pwd}/usr/share/info:${INFOPATH}"
+}

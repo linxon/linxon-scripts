@@ -16,6 +16,17 @@ set history=128
 set shiftwidth=4
 set tabstop=4
 set smartindent
+set directory=/tmp
 syntax on
-set nocompatible              " be iMproved, required
-filetype off                  " required
+
+" set spell spelllang=ru,en
+
+if has("autocmd")
+    " When editing a file, always jump to the last known cursor position.
+    " Don't do it when the position is invalid or when inside an event
+    " handler (happens when dropping a file on gvim).
+    autocmd BufReadPost *
+        \ if line("'\"") > 0 && line("'\"") <= line("$") |
+        \   exe "normal g`\"" |
+        \ endif
+endif
