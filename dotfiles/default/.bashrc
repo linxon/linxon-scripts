@@ -294,11 +294,11 @@ else
 fi
 
 ## Поддержка переключения сторонних языков (напр. Японский)
-if [ -x /usr/bin/ibus ] && [ "${TERM,,}" == 'xterm' ]; then 
-	export GTK_IM_MODULE=ibus
-	export XMODIFIERS=@im=ibus
-	export QT_IM_MODULES=ibus
-fi
+#if [ -x /usr/bin/ibus ] && [ "${TERM,,}" == 'xterm' ]; then 
+#	export GTK_IM_MODULE=ibus
+#	export XMODIFIERS=@im=ibus
+#	export QT_IM_MODULES=ibus
+#fi
 
 if [ -n "$DISPLAY" ]; then
   xset b off # disable pc-speaker
