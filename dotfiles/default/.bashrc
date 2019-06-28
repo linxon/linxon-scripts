@@ -230,6 +230,7 @@ if [ "$TERM" != dumb ]; then
 		alias top='htop'
 	}
 	[ -x /usr/bin/gio ] && alias cdgvfs='cd /run/user/${UID}/gvfs'
+	[ -x /usr/bin/ncdu ] && alias ncdu='ncdu --color=dark'
 fi
 
 ## Упрощаем работу с tripwire (требуется привелегии root)
