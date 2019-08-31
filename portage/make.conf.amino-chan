@@ -1,0 +1,52 @@
+GENTOO_MIRRORS="
+    http://cirno-chan/portage/
+    https://mirror.yandex.ru/gentoo-distfiles/
+    ${GENTOO_MIRRORS}"
+
+PORTAGE_BINHOST="http://cirno-chan/portage/packages/"
+
+CPU_FLAGS_X86="3dnow 3dnowext mmx mmxext sse sse2 sse3"
+CHOST="x86_64-pc-linux-gnu"
+CFLAGS="-O2 -pipe"
+CXXFLAGS="${CFLAGS}"
+
+MAKEOPTS="-j1"
+PORTAGE_NICENESS="16"
+
+COST_USE="
+    -systemd -gnome -webkit -wayland -xscreensaver fontconfig
+    policykit consolekit session xml lzma lzo zip bzip2 jpeg2k webp
+    bash-completion sound pulseaudio opus theora wavpack gnutls
+    networkmanager git cryptsetup ffmpeg samba vim-syntax wifi
+    drm thunar pm-utils lm_sensors hddtemp curl http http2 mtp
+    udisks zeroconf pcre32 opengl vaapi vdpau"
+
+USE="${USE} ${COST_USE}"
+
+PORTDIR="/repos/gentoo"
+DISTDIR="${PORTDIR}/distfiles"
+PKGDIR="${PORTDIR}/packages"
+
+ACCEPT_KEYWORDS="amd64"
+ACCEPT_LICENSE="* -@EULA"
+
+CLEAN_DELAY="5"
+EMERGE_WARNING_DELAY="10"
+EMERGE_DEFAULT_OPTS="--keep-going --fail-clean"
+PORTAGE_ELOG_CLASSES="warn error log qa"
+PORTAGE_ELOG_SYSTEM="save"
+PORTAGE_WORKDIR_MODE="0750"
+FEATURES="-getbinpkg distcc distcc-pump"
+LINGUAS="ru ru_RU"
+L10N="${LINGUAS}"
+GRUB_PLATFORMS="pc"
+INPUT_DEVICES="mouse keyboard evdev synaptics"
+VIDEO_CARDS="nvidia"
+ALSA_CARDS="hda-intel"
+SUPPORT_ALSA="1"
+LLVM_TARGETS="X86"
+XFCE_PLUGINS="power clock trash"
+
+PORTAGE_BUNZIP2_COMMAND="lbunzip2 -n2"
+FEATURES="${FEATURES} metadata-transfer"
+

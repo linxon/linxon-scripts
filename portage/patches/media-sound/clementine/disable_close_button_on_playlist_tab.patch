@@ -1,0 +1,11 @@
+--- a/src/playlist/playlisttabbar.cpp	2018-03-19 17:18:56.000000000 +0300
++++ b/src/playlist/playlisttabbar.cpp	2018-03-23 13:55:17.223151659 +0300
+@@ -49,7 +49,7 @@
+   setAcceptDrops(true);
+   setElideMode(Qt::ElideRight);
+   setUsesScrollButtons(true);
+-  setTabsClosable(true);
++  setTabsClosable(false);
+ 
+   close_ = menu_->addAction(IconLoader::Load("list-remove", IconLoader::Base),
+                             tr("Close playlist"), this, SLOT(Close()));

@@ -1,0 +1,13 @@
+diff -ru a/themes/Redmond/gtk-2.0/gtkrc b/themes/Redmond/gtk-2.0/gtkrc
+--- a/themes/Redmond/gtk-2.0/gtkrc	2018-04-18 08:08:47.272274646 +0300
++++ b/themes/Redmond/gtk-2.0/gtkrc	2018-04-18 08:10:57.432285551 +0300
+@@ -1,6 +1,9 @@
+ 
+ gtk-icon-sizes = "mini-commander-icon=32,32:print-manager=32,32:panel-button=32,32:gtk-dnd=32,32:gtk-menu=16,16:panel-menu=22,22:gtk-large-toolbar=16,16:gtk-small-toolbar=16,16:gtk-button=16,16:gtk-dialog=32,32"
+ 
++gtk-auto-mnemonics = 1
++gtk-primary-button-warps-slider = 1
++
+ style "standard-default"
+ {
+   GtkWidget::interior_focus = 2

@@ -1,0 +1,12 @@
+diff -ur a/po/ru.po b/po/ru.po
+--- a/po/ru.po	2018-04-06 00:02:56.000000000 +0300
++++ b/po/ru.po	2018-06-30 08:59:09.737137530 +0300
+@@ -829,7 +829,7 @@
+ #: ../thunar/thunar-file.c:1075 ../thunar/thunar-gio-extensions.c:242
+ #: ../thunar/thunar-shortcuts-model.c:1039
+ msgid "Trash"
+-msgstr "Корзина"
++msgstr "Ты здесь!"
+ 
+ #: ../thunar/thunar-file.c:1515
+ #, c-format

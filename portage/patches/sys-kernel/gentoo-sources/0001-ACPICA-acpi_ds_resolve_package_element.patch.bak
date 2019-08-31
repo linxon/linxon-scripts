@@ -1,0 +1,36 @@
+From c78cdf0562682bc64af2e8aad626474b9e893a5f Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Fri, 12 Jan 2018 10:57:51 +0100
+Subject: [PATCH 1/2] ACPICA: acpi_ds_resolve_package_element: Use proper
+ status when logging exception
+
+Do not override the status which causes us to call acpi_exception with the
+status returned by the acpi_ns_externalize_name call we do to get a name
+to log.
+
+Related: https://bugzilla.kernel.org/show_bug.cgi?id=198167
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/acpica/dspkginit.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/acpica/dspkginit.c b/drivers/acpi/acpica/dspkginit.c
+index 6d487edfe2de..cddbbed2f344 100644
+--- a/drivers/acpi/acpica/dspkginit.c
++++ b/drivers/acpi/acpica/dspkginit.c
+@@ -372,9 +372,9 @@ acpi_ds_resolve_package_element(union acpi_operand_object **element_ptr)
+ 				ACPI_NS_SEARCH_PARENT | ACPI_NS_DONT_OPEN_SCOPE,
+ 				NULL, &resolved_node);
+ 	if (ACPI_FAILURE(status)) {
+-		status = acpi_ns_externalize_name(ACPI_UINT32_MAX,
+-						  (char *)element->reference.
+-						  aml, NULL, &external_path);
++		acpi_ns_externalize_name(ACPI_UINT32_MAX,
++					 (char *)element->reference.aml, NULL,
++					 &external_path);
+ 
+ 		ACPI_EXCEPTION((AE_INFO, status,
+ 				"Could not find/resolve named package element: %s",
+-- 
+2.14.3
+

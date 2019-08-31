@@ -1,0 +1,22 @@
+diff -ur a/drivers/bluetooth/ath3k.c b/drivers/bluetooth/ath3k.c
+--- a/drivers/bluetooth/ath3k.c	2018-10-22 09:37:37.000000000 +0300
++++ b/drivers/bluetooth/ath3k.c	2019-07-04 23:23:08.282556076 +0300
+@@ -69,7 +69,6 @@
+ 	{ USB_DEVICE(0x0930, 0x0215) },
+ 	{ USB_DEVICE(0x0CF3, 0x3002) },
+ 	{ USB_DEVICE(0x0CF3, 0xE019) },
+-	{ USB_DEVICE(0x13d3, 0x3304) },
+ 
+ 	/* Atheros AR9285 Malbec with sflash firmware */
+ 	{ USB_DEVICE(0x03F0, 0x311D) },
+diff -ur a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
+--- a/drivers/bluetooth/btusb.c	2019-05-20 17:10:22.118554000 +0300
++++ b/drivers/bluetooth/btusb.c	2019-07-04 23:23:09.443475591 +0300
+@@ -199,7 +199,6 @@
+ 	{ USB_DEVICE(0x0930, 0x0215), .driver_info = BTUSB_IGNORE },
+ 	{ USB_DEVICE(0x0cf3, 0x3002), .driver_info = BTUSB_IGNORE },
+ 	{ USB_DEVICE(0x0cf3, 0xe019), .driver_info = BTUSB_IGNORE },
+-	{ USB_DEVICE(0x13d3, 0x3304), .driver_info = BTUSB_IGNORE },
+ 
+ 	/* Atheros AR9285 Malbec with sflash firmware */
+ 	{ USB_DEVICE(0x03f0, 0x311d), .driver_info = BTUSB_IGNORE },

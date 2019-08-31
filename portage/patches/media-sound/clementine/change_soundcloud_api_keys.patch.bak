@@ -1,0 +1,14 @@
+--- a/src/internet/soundcloud/soundcloudservice.cpp	2017-11-13 13:00:44.000000000 +0300
++++ b/src/internet/soundcloud/soundcloudservice.cpp	2017-12-24 11:28:45.996766139 +0300
+@@ -47,9 +47,9 @@
+ #include "ui/iconloader.h"
+ 
+ const char* SoundCloudService::kApiClientId =
+-    "2add0f709fcfae1fd7a198ec7573d2d4";
++    "2add0f709fcfae1fd7a198ec7573d111";
+ const char* SoundCloudService::kApiClientSecret =
+-    "d1cd7829da2e98e1e0621d85d57a2077";
++    "d1cd7829da2e98e1e0621d85d57a2111";
+ 
+ const char* SoundCloudService::kServiceName = "SoundCloud";
+ const char* SoundCloudService::kSettingsGroup = "SoundCloud";

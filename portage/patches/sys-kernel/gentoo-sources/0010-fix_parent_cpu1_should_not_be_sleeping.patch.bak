@@ -1,0 +1,40 @@
+diff -ur a/drivers/base/cpu.c b/drivers/base/cpu.c
+--- a/drivers/base/cpu.c	2016-12-11 22:17:54.000000000 +0300
++++ b/drivers/base/cpu.c	2018-04-14 10:58:43.363644000 +0300
+@@ -344,6 +344,14 @@
+ }
+ #endif
+ 
++static int cpu_dev_pm_unset_is_prepared(unsigned int cpu)
++{
++	struct device *cpu_dev = get_cpu_device(cpu);
++	
++	if(cpu_dev)
++		cpu_dev->power.is_prepared = false;
++	return 0;
++}
+ /*
+  * register_cpu - Setup a sysfs device for a CPU.
+  * @cpu - cpu->hotpluggable field set to 1 will generate a control file in
+@@ -377,7 +385,9 @@
+ 	per_cpu(cpu_sys_devices, num) = &cpu->dev;
+ 	register_cpu_under_node(num, cpu_to_node(num));
+ 
+-	return 0;
++	return cpuhp_setup_state_nocalls(CPUHP_CPUDEV_PM_PREPARE,
++								"base/cpu/dev_pm:prepare",
++								cpu_dev_pm_unset_is_prepared, NULL);
+ }
+ 
+ struct device *get_cpu_device(unsigned cpu)
+diff -ur a/include/linux/cpuhotplug.h b/include/linux/cpuhotplug.h
+--- a/include/linux/cpuhotplug.h	2018-04-14 11:03:36.202220000 +0300
++++ b/include/linux/cpuhotplug.h	2018-04-14 11:01:00.799219000 +0300
+@@ -39,6 +39,7 @@
+ 	CPUHP_SLAB_PREPARE,
+ 	CPUHP_MD_RAID5_PREPARE,
+ 	CPUHP_RCUTREE_PREP,
++	CPUHP_CPUDEV_PM_PREPARE,
+ 	CPUHP_CPUIDLE_COUPLED_PREPARE,
+ 	CPUHP_POWERPC_PMAC_PREPARE,
+ 	CPUHP_POWERPC_MMU_CTX_PREPARE,
