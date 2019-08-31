@@ -8,7 +8,7 @@
 
 _REPONAME=${1}
 _PMASK_FILEPATH="${AUTOMASK_REPO_MASKFILE:-/etc/portage/package.mask/overlays.list}"
-_PMASK_EXCLUDE_FILEPATH="${AUTOMASK_REPO_EXFILE:-/etc/portage/exclude_mask_overlays}"
+_PMASK_TRUSTED_OVERLAYS="${AUTOMASK_REPO_EXFILE:-/etc/portage/trusted-overlays}"
 
 _C_RED='\033[0;31m'
 _C_GREEN='\033[0;32m'
@@ -39,11 +39,11 @@ _update_maskfile() {
 
 _is_excluded() {
 	local overlay=$1
-	if [ ! -f "${_PMASK_EXCLUDE_FILEPATH}" ]; then
+	if [ ! -f "${_PMASK_TRUSTED_OVERLAYS}" ]; then
 		return 1
 	fi
 	
-	for ex_overlay in $(cat "${_PMASK_EXCLUDE_FILEPATH}"); do
+	for ex_overlay in $(cat "${_PMASK_TRUSTED_OVERLAYS}"); do
 		if [[ "${ex_overlay}" == "${overlay}" ]]; then
 			if ! [ -f "${_PMASK_FILEPATH}" ]; then
 				return 1
