@@ -1,0 +1,86 @@
+diff -ur 1/kernel/nv.c 2/kernel/nv.c
+--- 1/kernel/nv.c	2018-01-29 14:23:57.862591017 +0300
++++ 2/kernel/nv.c	2018-01-29 14:25:40.181876174 +0300
+@@ -332,7 +332,7 @@
+ #else
+ static irqreturn_t   nvidia_isr            (int, void *);
+ #endif
+-static void          nvidia_rc_timer       (unsigned long);
++static void          nvidia_rc_timer       (struct timer_list *t);
+ 
+ static int           nvidia_ctl_open       (struct inode *, struct file *);
+ static int           nvidia_ctl_close      (struct inode *, struct file *);
+@@ -1891,10 +1891,10 @@
+ 
+ static void
+ nvidia_rc_timer(
+-    unsigned long data
++    struct timer_list *t
+ )
+ {
+-    nv_linux_state_t *nvl = (nv_linux_state_t *) data;
++    nv_linux_state_t *nvl = from_timer(nvl, t, rc_timer);
+     nv_state_t *nv = NV_STATE_PTR(nvl);
+ 
+     NV_CHECK_PCI_CONFIG_SPACE(nvl->timer_sp, nv, TRUE, TRUE, FALSE);
+@@ -2404,9 +2404,7 @@
+         return -1;
+ 
+     nv_printf(NV_DBG_INFO, "NVRM: initializing rc timer\n");
+-    init_timer(&nvl->rc_timer);
+-    nvl->rc_timer.function = nvidia_rc_timer;
+-    nvl->rc_timer.data = (unsigned long) nvl;
++    timer_setup(&nvl->rc_timer, nvidia_rc_timer, 0);
+     nv->rc_timer_enabled = 1;
+     mod_timer(&nvl->rc_timer, jiffies + HZ); /* set our timeout for 1 second */
+     nv_printf(NV_DBG_INFO, "NVRM: rc timer initialized\n");
+diff -ur 1/kernel/nv-drm.c 2/kernel/nv-drm.c
+--- 1/kernel/nv-drm.c	2018-01-29 14:21:37.261649935 +0300
++++ 2/kernel/nv-drm.c	2018-01-29 14:23:32.198527760 +0300
+@@ -22,6 +22,15 @@
+ #include <drm/drm_gem.h>
+ #endif
+ 
++/*
++ * drm_pci_(init|exit) were renamed to drm_legacy_pci_(init|exit)
++ * in 4.14; map the new interface names to the old ones.
++ */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
++# define drm_pci_init drm_legacy_pci_init
++# define drm_pci_exit drm_legacy_pci_exit
++#endif
++
+ extern nv_linux_state_t *nv_linux_devices;
+ 
+ struct nv_gem_object {
+diff -ur 1/kernel/uvm/nvidia_uvm_lite.c 2/kernel/uvm/nvidia_uvm_lite.c
+--- 1/kernel/uvm/nvidia_uvm_lite.c	2018-01-29 14:16:37.632906113 +0300
++++ 2/kernel/uvm/nvidia_uvm_lite.c	2018-01-29 14:20:54.323791344 +0300
+@@ -818,8 +818,15 @@
+ }
+ 
+ #if defined(NV_VM_OPERATIONS_STRUCT_HAS_FAULT)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+ int _fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++#else
++int _fault(struct vm_fault *vmf)
++#endif
+ {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
++    struct vm_area_struct *vma = vmf->vma;
++#endif
+ #if defined(NV_VM_FAULT_HAS_ADDRESS)
+     unsigned long vaddr = vmf->address;
+ #else
+@@ -866,7 +873,11 @@
+ // it's dealing with anonymous mapping (see handle_pte_fault).
+ //
+ #if defined(NV_VM_OPERATIONS_STRUCT_HAS_FAULT)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+ int _sigbus_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++#else
++int _sigbus_fault(struct vm_fault *vmf)
++#endif
+ {
+     vmf->page = NULL;
+     return VM_FAULT_SIGBUS;

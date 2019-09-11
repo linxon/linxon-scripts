@@ -1,0 +1,27 @@
+From b30fb53731012d7d7a719b1d69bd9dea2b4ee36e Mon Sep 17 00:00:00 2001
+From: Mohammed Sadiq <sadiq@sadiqpk.org>
+Date: Wed, 9 Jan 2019 16:36:06 +0530
+Subject: [PATCH] gtkpopover: Fix popover when parent widget is partially
+ visible
+
+fixes https://gitlab.gnome.org/GNOME/gtk/issues/750
+---
+ gtk/gtkpopover.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gtk/gtkpopover.c b/gtk/gtkpopover.c
+index 8ee72bfb4c..478c3470c9 100644
+--- a/gtk/gtkpopover.c
++++ b/gtk/gtkpopover.c
+@@ -1009,7 +1009,7 @@ _gtk_popover_update_child_visible (GtkPopover *popover)
+     }
+ 
+   parent = gtk_widget_get_parent (GTK_WIDGET (priv->parent_scrollable));
+-  rect = priv->pointing_to;
++  gtk_popover_get_pointing_to (widget, &rect);
+ 
+   gtk_widget_translate_coordinates (priv->widget, parent,
+                                     rect.x, rect.y, &rect.x, &rect.y);
+-- 
+2.18.1
+

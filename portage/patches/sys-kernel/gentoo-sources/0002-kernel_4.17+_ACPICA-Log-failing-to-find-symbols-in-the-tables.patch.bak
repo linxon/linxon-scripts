@@ -1,0 +1,68 @@
+diff -ru a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+--- a/drivers/acpi/acpica/tbxfload.c	2018-06-04 00:15:21.000000000 +0300
++++ b/drivers/acpi/acpica/tbxfload.c	2018-06-04 14:22:39.745566883 +0300
+@@ -210,7 +210,7 @@
+ 	if (!tables_failed) {
+ 		ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded", tables_loaded));
+ 	} else {
+-		ACPI_ERROR((AE_INFO,
++		ACPI_WARNING((AE_INFO,
+ 			    "%u table load failures, %u successful",
+ 			    tables_failed, tables_loaded));
+ 
+diff -ru a/drivers/acpi/acpica/uterror.c b/drivers/acpi/acpica/uterror.c
+--- a/drivers/acpi/acpica/uterror.c	2018-06-04 00:15:21.000000000 +0300
++++ b/drivers/acpi/acpica/uterror.c	2018-06-04 14:25:03.985078163 +0300
+@@ -241,7 +241,11 @@
+ 	char *name = NULL;
+ 
+ 	ACPI_MSG_REDIRECT_BEGIN;
+-	acpi_os_printf(ACPI_MSG_ERROR);
++	/* Many ACPI tables reference missing symbols, log this as warnings */
++	if (lookup_status == AE_NOT_FOUND)
++		acpi_os_printf(ACPI_MSG_WARNING);
++	else
++		acpi_os_printf(ACPI_MSG_ERROR);
+ 
+ 	if (lookup_status == AE_BAD_CHARACTER) {
+ 
+@@ -306,7 +310,11 @@
+ 	struct acpi_namespace_node *node = prefix_node;
+ 
+ 	ACPI_MSG_REDIRECT_BEGIN;
+-	acpi_os_printf(ACPI_MSG_ERROR);
++	/* Many ACPI tables reference missing symbols, log this as warnings */
++	if (method_status == AE_NOT_FOUND)
++		acpi_os_printf(ACPI_MSG_WARNING);
++	else
++		acpi_os_printf(ACPI_MSG_ERROR);
+ 
+ 	if (path) {
+ 		status = acpi_ns_get_node(prefix_node, path,
+diff -ru a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
+--- a/drivers/acpi/acpica/utxferror.c	2018-06-04 00:15:21.000000000 +0300
++++ b/drivers/acpi/acpica/utxferror.c	2018-06-04 14:26:37.401290476 +0300
+@@ -72,15 +72,15 @@
+ 
+ 	ACPI_MSG_REDIRECT_BEGIN;
+ 
+-	/* For AE_OK, just print the message */
+-
+-	if (ACPI_SUCCESS(status)) {
++	/* Many ACPI tables reference missing symbols, log this as warnings */
++	if (status == AE_NOT_FOUND)
++		acpi_os_printf(ACPI_MSG_WARNING);
++	else
+ 		acpi_os_printf(ACPI_MSG_ERROR);
+-
+-	} else {
+-		acpi_os_printf(ACPI_MSG_ERROR "%s, ",
+-			       acpi_format_exception(status));
+-	}
++	
++	/* For failures append the formatted exception */
++	if (ACPI_FAILURE(status))
++		acpi_os_printf("%s, ", acpi_format_exception(status));
+ 
+ 	va_start(arg_list, format);
+ 	acpi_os_vprintf(format, arg_list);
