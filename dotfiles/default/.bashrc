@@ -220,6 +220,8 @@ if [ "$TERM" != dumb ]; then
 		[ -x /bin/lsmod ] && alias lsmod='cl lsmod'
 		[ -x /usr/bin/vmstat ] && alias vmstat='cl vmstat'
 		[ -x /usr/bin/uptime ] && alias uptime='cl uptime'
+		[ -x /usr/sbin/lspci ] && alias lspci='cl lspci'
+		[ -x /sbin/ss ] && alias ss='cl ss'
 	}
 
 	[ -x /usr/bin/tailf ] || alias tailf="tail -f"
