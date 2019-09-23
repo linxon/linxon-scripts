@@ -606,3 +606,11 @@ using-env-here() {
 	export MANPATH="${fhs_pwd}/usr/share/man:${MANPATH}"
 	export INFOPATH="${fhs_pwd}/usr/share/info:${INFOPATH}"
 }
+
+if [ -x /usr/bin/fff ]; then
+	f() {
+		fff "$@"
+		cd "$(cat "${XDG_CACHE_HOME:=${HOME}/.cache}/fff/.fff_d")"
+	}
+fi
+
