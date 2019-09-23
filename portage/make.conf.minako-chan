@@ -17,7 +17,7 @@ USE="-systemd -gnome -webkit -wayland -xscreensaver iproute2 fontconfig \
      bash-completion sound pulseaudio opus theora wavpack gnutls \
      networkmanager git cryptsetup ffmpeg samba vim-syntax wifi \
      bluetooth drm thunar pm-utils lm_sensors hddtemp curl http http2 mtp \
-     udisks zeroconf pcre32 opengl vaapi vdpau cjk"
+     udisks zeroconf pcre32 opengl vaapi vdpau cjk libproxy"
 
 PORTDIR="/repos/gentoo"
 DISTDIR="${PORTDIR}/distfiles"
@@ -36,7 +36,7 @@ LINGUAS="ru ru_RU"
 L10N="${LINGUAS}"
 GRUB_PLATFORMS="pc"
 INPUT_DEVICES="mouse keyboard libinput synaptics"
-VIDEO_CARDS="intel i915 nvidia"
+VIDEO_CARDS="intel i915"
 ALSA_CARDS="hda-intel"
 SUPPORT_ALSA="1"
 LLVM_TARGETS="X86"
