@@ -128,15 +128,14 @@ if [ "${TERM}" != dumb ] && [[ -x /usr/bin/startxfce4 && "${IS_ROOT}" != "1" ]];
 			else
 				echo -en "\033[0m" && sleep 1
 				/usr/bin/startxfce4 --with-ck-launch > /dev/null 2>&1 &
-				
-				logout || break
+
+				break
 			fi
 		done
 	fi
 fi
 
 if [ "$TERM" != dumb ]; then
-	## Включить цветовую схему для команды - ls
 	[ -x /usr/bin/dircolors ] && {
 		test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 		alias ls='ls --color=auto'
@@ -149,14 +148,15 @@ if [ "$TERM" != dumb ]; then
 	}
 
 	## Навигация по каталогам
-	alias cdl='cd $1 && ls -l'
-	alias cdll='cd $1 && ls -alF'
+	alias cdl='cd "$1" && ls -l'
+	alias cdll='cd "$1" && ls -alF'
 	alias ..='cd ..'
 	alias ...='cd ../..'
 	alias ....='cd ../../..'
 	alias .....='cd ../../../..'
 	alias ......='cd ../../../../..'
 	alias .......='cd ../../../../../..'
+	alias ........='cd ../../../../../../..'
 
 	## Прочие команды
 	alias l='ls -CF'
@@ -222,6 +222,7 @@ if [ "$TERM" != dumb ]; then
 		[ -x /usr/bin/uptime ] && alias uptime='cl uptime'
 		[ -x /usr/sbin/lspci ] && alias lspci='cl lspci'
 		[ -x /sbin/ss ] && alias ss='cl ss'
+		[ -x /usr/bin/free ] && alias free='cl free -h'
 	}
 
 	[ -x /usr/bin/tailf ] || alias tailf="tail -f"
@@ -263,9 +264,9 @@ fi
 ## Включить программируемое атозаполнение
 if ! shopt -oq posix; then
 	if [ -f /usr/share/bash-completion/bash_completion ]; then
-		. /usr/share/bash-completion/bash_completion
+		source /usr/share/bash-completion/bash_completion
 	elif [ -f /etc/bash_completion ]; then
-		. /etc/bash_completion
+		source /etc/bash_completion
 	fi
 fi
 
@@ -290,10 +291,10 @@ fi
 
 ## Локальные страницы помощи
 MANDIR_PATH="${HOME}/.local/share/man"
-if [ -d ${MANDIR_PATH} ]; then
+if [ -d "${MANDIR_PATH}" ]; then
 	export MANPATH="${MANPATH}:${MANDIR_PATH}"
 else
-	mkdir -p ${MANDIR_PATH} && export MANPATH="${MANPATH}:${MANDIR_PATH}"
+	mkdir -p "${MANDIR_PATH}" && export MANPATH="${MANPATH}:${MANDIR_PATH}"
 fi
 
 ## Поддержка переключения сторонних языков (напр. Японский)
@@ -309,10 +310,11 @@ if [ -n "$DISPLAY" ]; then
 fi
 
 if [ -f /usr/libexec/mc/mc.sh ]; then
-	. /usr/libexec/mc/mc.sh
+	source /usr/libexec/mc/mc.sh
 fi
 
 # Устанавливаем лимит на вывод для eix -p ...
 if [ -x /usr/bin/eix ]; then
 	export EIX_LIMIT=0
 fi
+

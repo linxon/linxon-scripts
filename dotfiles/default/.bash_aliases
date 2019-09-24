@@ -31,10 +31,8 @@ alias shred="shred -zv"
 
 ## Упрощение основных программ мониторинга
 alias wdu='watch -n 1 du -sh'
-alias free='free -h'
 alias wfree='watch -n 1 free'
 alias wdf='watch -n 1 "df -h"'
-alias wdmesg='watch -n 1 "sudo dmesg | tail -n 20"'
 [ -x /opt/bin/yandex-disk ] && alias wyadisk='watch -n1 yandex-disk status'
 [ -x /usr/bin/sensors ] && alias sensors='watch -n 1 sensors'
 [ -x /usr/bin/youtube-dl ] && {
@@ -55,9 +53,3 @@ alias cdg='cd -P ~/GitClones'
 alias cdcloud='cd -P /media/Xlam/Cloud/'
 alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 
-# Консольная утилита для шаринга текста, картинок и анимаций консоли 
-# (https://www.linux.org.ru/forum/general/14806568)
-# P.S. Нихуя не работает -_-
-alias pb="curl -F c=@- https://ptpb.pw" 
-alias ibin="xclip -selection clipboard -t image/png -o | pb"
-alias tbin="xclip -selection clipboard -t plain/text -o | pb"
