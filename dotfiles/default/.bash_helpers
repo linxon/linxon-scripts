@@ -372,15 +372,6 @@ pcopy() {
 	} || echo "Необходим пакет: xClip"
 }
 
-initvbox() {
-	[ -x /usr/bin/VirtualBox ] && {
-		if [[ $(lsmod | grep -io vboxdrv) != "" ]] || [[ $(lsmod | grep -io vboxnetflt) != "" ]] || [[ $(lsmod | grep -io vboxnetadp) != "" ]]; then
-			sudo rmmod vboxnetadp && sudo rmmod vboxnetflt && sudo rmmod vboxdrv
-		fi
-		sudo modprobe vboxdrv && sudo modprobe vboxnetadp && sudo modprobe vboxnetflt
-	}
-}
-
 rsha256sum() {
 	
 	TMP_FOLDER="${HOME}/.cache/rsha256sum/"
@@ -547,14 +538,42 @@ genpass() {
 	fi
 }
 
-# Позволяет переименовывать файл используя хеш  в качестве имени (Нужно будет доработать!)
+# Позволяет переименовывать файл или несколько файлов используя хеш в качестве имени
 rename-to-md5() {
-	if [ -f "$@" ]; then
-		for FILENAME in "$@"; do
-			MD5_HASH=$(md5sum "$FILENAME" | head -c 32)
-			mv -v "$FILENAME" "${MD5_HASH}.${FILENAME##*.}"
+	local f x md5_hash
+	local f_name f_path new_f
+
+	if [ $# -eq 0 ]; then
+		while read x; do
+			f+=( "$x" )
 		done
+		set -- "${f[@]}"
 	fi
+
+	for f in $@; do
+		if ! [ -f "$f" ]; then
+			echo "${FUNCNAME[0]}: $f — is not found!"
+			continue
+		fi
+
+		md5_hash=$(md5sum "$f" | cut -d' ' -f1)
+
+		f_path="$(dirname $f)"
+		f_name="$(basename $f)"
+		f_ext="${f_name%.[^.]*}"
+
+		if [ "${f_name:${#f_ext} + 1}" ]; then
+			new_f="${f_path}/${md5_hash}.${f_name##*.}"
+			[ -f "$new_f" ] \
+				&& echo "${FUNCNAME[0]}: $new_f — already exists!" \
+				|| mv -v "$f" "$new_f"
+		else
+			new_f="${f_path}/${md5_hash}"
+			[ -f "$new_f" ] \
+				&& echo "${FUNCNAME[0]}: $new_f — already exists!" \
+				|| mv -v "$f" "$new_f"
+		fi
+	done
 }
 
 cdcd() {
