@@ -544,34 +544,35 @@ rename-to-md5() {
 	local f_name f_path new_f
 
 	if [ $# -eq 0 ]; then
-		while read x; do
+		while read -r x; do
 			f+=( "$x" )
 		done
 		set -- "${f[@]}"
 	fi
 
+	IFS=$'\n'
 	for f in $@; do
 		if ! [ -f "$f" ]; then
 			echo "${FUNCNAME[0]}: $f — is not found!"
 			continue
 		fi
 
-		md5_hash=$(md5sum "$f" | cut -d' ' -f1)
+		md5_hash=$(md5sum -- "$f" | cut -d' ' -f1)
 
-		f_path="$(dirname $f)"
-		f_name="$(basename $f)"
+		f_path="$(dirname -- "$f")"
+		f_name="$(basename -- "$f")"
 		f_ext="${f_name%.[^.]*}"
 
 		if [ "${f_name:${#f_ext} + 1}" ]; then
 			new_f="${f_path}/${md5_hash}.${f_name##*.}"
 			[ -f "$new_f" ] \
 				&& echo "${FUNCNAME[0]}: $new_f — already exists!" \
-				|| mv -v "$f" "$new_f"
+				|| mv -v -- "$f" "$new_f"
 		else
 			new_f="${f_path}/${md5_hash}"
 			[ -f "$new_f" ] \
 				&& echo "${FUNCNAME[0]}: $new_f — already exists!" \
-				|| mv -v "$f" "$new_f"
+				|| mv -v -- "$f" "$new_f"
 		fi
 	done
 }
