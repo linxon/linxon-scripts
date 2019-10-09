@@ -48,10 +48,11 @@ alias pbin='nc pastebin.linxon.ru 9999 | xclip -selection "clipboard" && notify-
 alias clfile='cat /dev/null >'
 alias mapscii='telnet mapscii.me'
 [ -x /usr/bin/vim ] && alias vimlast='vim $(ls -t | head -1)'
+
 alias cdw='cd -P /tmp/linxon-tmp-files'
 alias cdg='cd -P ~/GitClones'
 alias cdcloud='cd -P /media/Xlam/Cloud/'
 alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
-
 [ -d "/run/media/${USER}" ] && alias cdm='cd /run/media/${USER}'
+[ -d "/etc/portage" ] && alias cdp='cd /etc/portage'
 
