@@ -1,6 +1,0 @@
-dev-qt/qtwebkit notmpfs.conf
-dev-qt/qtwebengine notmpfs.conf
-mail-client/thunderbird notmpfs.conf
-app-office/libreoffice notmpfs.conf
-www-client/firefox notmpfs.conf
-www-client/chromium notmpfs.conf

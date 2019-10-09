@@ -1,0 +1,4 @@
+CFLAGS="-march=x86-64 -O2 -pipe"
+CXXFLAGS="${CFLAGS}"
+FCFLAGS="${CFLAGS}"
+FFLAGS="${CFLAGS}"

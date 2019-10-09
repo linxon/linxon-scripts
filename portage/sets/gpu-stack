@@ -1,6 +1,0 @@
-x11-libs/libdrm
-media-libs/mesa
-x11-drivers/nvidia-drivers
-x11-drivers/xf86-video-nouveau
-#x11-drivers/xf86-video-ati
-#x11-drivers/xf86-video-intel
