@@ -53,3 +53,5 @@ alias cdg='cd -P ~/GitClones'
 alias cdcloud='cd -P /media/Xlam/Cloud/'
 alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 
+[ -d "/run/media/${USER}" ] && alias cdm='cd /run/media/${USER}'
+
