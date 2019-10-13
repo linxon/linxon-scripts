@@ -1,0 +1,18 @@
+diff -ur a/src/xfdesktop-file-icon-manager.c b/src/xfdesktop-file-icon-manager.c
+--- a/src/xfdesktop-file-icon-manager.c	2019-05-19 23:13:01.000000000 +0300
++++ b/src/xfdesktop-file-icon-manager.c	2019-10-12 20:20:53.814019005 +0300
+@@ -1843,14 +1843,6 @@
+ 
+         if(file_icon == fmanager->priv->desktop_icon) {
+             /* Menu on the root desktop window */
+-            /* show arrange desktop icons option */
+-            img = gtk_image_new_from_icon_name("view-sort-ascending", GTK_ICON_SIZE_MENU);
+-            mi = xfdesktop_menu_create_menu_item_with_mnemonic(_("Arrange Desktop _Icons"), img);
+-            gtk_widget_show(mi);
+-            gtk_menu_shell_append(GTK_MENU_SHELL(menu), mi);
+-            g_signal_connect(G_OBJECT(mi), "activate",
+-                             G_CALLBACK(xfdesktop_file_icon_menu_arrange_icons),
+-                             fmanager);
+ 
+             if(xfce_desktop_get_cycle_backdrop(XFCE_DESKTOP(fmanager->priv->desktop))) {
+                 /* show next background option */
