@@ -19,15 +19,8 @@ alias p='pwd'
 alias pc='pcopy'
 alias pwdc='pcopy'
 
-## Команда — nano
-alias na='nano'
-
 ## Команда — cat
-alias ct='cat'
-alias ca='cat'
 [ -x /usr/bin/ccat ] && alias cat='ccat'
-
-alias shred="shred -zv"
 
 ## Упрощение основных программ мониторинга
 alias wdu='watch -n 1 du -sh'

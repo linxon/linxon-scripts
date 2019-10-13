@@ -363,13 +363,13 @@ rmlinks () {
 pcopy() {
 	[ -x /usr/bin/xclip ] && {
 		if [[ -d "$1" || -f "$1" ]]; then
-			echo "Путь: $(readlink -f "$1")" && echo -n $(readlink -f "$1") | xclip -selection "clipboard"
+			echo "$(readlink -f "$1")" && echo -n $(readlink -f "$1") | xclip -selection "clipboard"
 			[ -x /usr/bin/notify-send ] && notify-send --urgency=low -i "$([ $? = 0 ] && echo xfce4-clipman-plugin)" "Скопирован в буфер обмена как:" $(readlink -f "$1")
 		else
-			echo "Путь: $(pwd)" && echo -n $(pwd) | xclip -selection "clipboard"
+			echo "$(pwd)" && echo -n $(pwd) | xclip -selection "clipboard"
 			[ -x /usr/bin/notify-send ] && notify-send --urgency=low -i "$([ $? = 0 ] && echo xfce4-clipman-plugin)" "Скопирован в буфер обмена как:" $(pwd)
 		fi
-	} || echo "Необходим пакет: xClip"
+	} || echo "xClip package required!"
 }
 
 rsha256sum() {
