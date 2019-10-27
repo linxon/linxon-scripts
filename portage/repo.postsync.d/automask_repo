@@ -6,7 +6,7 @@
 # установку сомнительного ПО
 #####################################################
 
-_REPONAME=${1}
+_REPONAME=$1
 _PMASK_FILEPATH="${AUTOMASK_REPO_MASKFILE:-/etc/portage/package.mask/overlays.list}"
 _PMASK_TRUSTED_OVERLAYS="${AUTOMASK_REPO_EXFILE:-/etc/portage/trusted-overlays}"
 
@@ -42,14 +42,14 @@ _is_excluded() {
 	if [ ! -f "${_PMASK_TRUSTED_OVERLAYS}" ]; then
 		return 1
 	fi
-	
-	for ex_overlay in $(cat "${_PMASK_TRUSTED_OVERLAYS}"); do
+
+	for ex_overlay in $(< "${_PMASK_TRUSTED_OVERLAYS}"); do
 		if [[ "${ex_overlay}" == "${overlay}" ]]; then
 			if ! [ -f "${_PMASK_FILEPATH}" ]; then
 				return 1
 			fi
 
-			for atom in $(cat "${_PMASK_FILEPATH}"); do
+			for atom in $(< "${_PMASK_FILEPATH}"); do
 				if [[ "${atom}" == "*/*::${ex_overlay}" ]]; then
 					if _update_maskfile "${ex_overlay}"; then
 						_UNMASKED=2
@@ -59,7 +59,7 @@ _is_excluded() {
 				fi
 			done
 
-			if (( ${_UNMASKED} == 0 )); then
+			if (( $_UNMASKED == 0 )); then
 				_SKIPPED=3
 			fi
 
@@ -70,11 +70,11 @@ _is_excluded() {
 	return 1
 }
 
-_is_avalible() {
+_is_available() {
 	local overlay=$1
 
 	if [ -f "${_PMASK_FILEPATH}" ]; then
-		for atom in $(cat "${_PMASK_FILEPATH}"); do
+		for atom in $(< "${_PMASK_FILEPATH}"); do
 			if [[ "${atom}" == "*/*::${overlay}" ]]; then
 				_MASKED=1
 				return
@@ -93,8 +93,8 @@ _cleanup() {
 		return 1
 	fi
 
-	for masked_repo in $(cat "${_PMASK_FILEPATH}"); do
-		for av_repo in ${_LS_AVALIBLE_REPO}; do
+	for masked_repo in $(< "${_PMASK_FILEPATH}"); do
+		for av_repo in $_LS_AVALIBLE_REPO; do
 			if [[ "*/*::${av_repo}" == "${masked_repo}" ]]; then
 				to_remove=0
 				break
@@ -103,27 +103,27 @@ _cleanup() {
 			fi
 		done
 
-		if (( ${to_remove} == 1 )); then
+		if (( $to_remove == 1 )); then
 			masked_repo=${masked_repo//\*\/\*\:\:}
-			if _update_maskfile ${masked_repo}; then
+			if _update_maskfile $masked_repo; then
 				echo -e "${_C_GREEN} * ${_C_NC}automask_repo: ${_C_RED}${masked_repo}${_C_NC} [${_C_YELLOW}Removed${_C_NC}]"
 			fi
 		fi
 	done
 }
 
-if [ "${_REPONAME}" != "gentoo" ]; then
+if [[ "${_REPONAME}" != "gentoo" ]]; then
 	_cleanup
 
 	echo -ne "${_C_GREEN} * ${_C_NC}automask_repo: ${_C_RED}${_REPONAME}${_C_NC} "
-	if _is_excluded ${_REPONAME}; then
-		case $((${_UNMASKED} + ${_SKIPPED})) in
+	if _is_excluded $_REPONAME; then
+		case $(($_UNMASKED + $_SKIPPED)) in
 			2) echo -e "[${_C_YELLOW}Unmasked${_C_NC}]";;
 			3) echo -e "[${_C_GREEN}Skip${_C_NC}]";;
-			5) echo -e "[${_C_YELLOW}WTF?${_C_NC}]" && _RET=1;;
+			5) echo -e "[${_C_YELLOW}WTF?${_C_NC}]"; _RET=1;;
 		esac
-	elif _is_avalible ${_REPONAME}; then
-		case ${_MASKED} in
+	elif _is_available $_REPONAME; then
+		case $_MASKED in
 			1) echo -e "[${_C_GREEN}Already masked${_C_NC}]";;
 		esac
 	else
@@ -133,4 +133,4 @@ if [ "${_REPONAME}" != "gentoo" ]; then
 	fi
 fi
 
-exit "${_RET}"
+exit $_RET
