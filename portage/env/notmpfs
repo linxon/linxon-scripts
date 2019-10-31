@@ -1,1 +1,1 @@
-PORTAGE_TMPDIR="/var/tmp/portage"
+PORTAGE_TMPDIR="/home"
