@@ -8,7 +8,7 @@ if [ -d ${TMP_DIR} ]; then
 	exit
 fi
 
-/bin/mkdir -p --mode=0700 ${TMP_DIR} && {
+{
 
 	echo "Это временная директория (tmpfs). Все файлы будут удалены после перезагрузки." > "${TMP_DIR}"/README.txt
 
