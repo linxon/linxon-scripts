@@ -14,7 +14,6 @@ app-portage/pfl
 app-portage/portpeek
 app-portage/repoman
 app-portage/smart-live-rebuild
-dev-go/get-ego-vendor
-dev-util/cargo-ebuild
 dev-util/ccache
 sys-devel/distcc
+
