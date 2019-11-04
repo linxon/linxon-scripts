@@ -1,0 +1,78 @@
+From d8530312cea9a123c78575d128d866d2c6099b16 Mon Sep 17 00:00:00 2001
+From: Yury Martynov <email@linxon.ru>
+Date: Thu, 17 Oct 2019 21:23:24 +0300
+Subject: [PATCH] Not possible to grab scrollbar on the very right pixels when
+ Mousepad is maximized
+
+---
+ mousepad/mousepad-application.c | 19 +++++++++++++++++++
+ mousepad/mousepad-document.c    |  5 +++++
+ 2 files changed, 24 insertions(+)
+
+diff --git a/mousepad/mousepad-application.c b/mousepad/mousepad-application.c
+index 5d4dc21..59ce8b2 100644
+--- a/mousepad/mousepad-application.c
++++ b/mousepad/mousepad-application.c
+@@ -35,6 +35,7 @@ static void        mousepad_application_new_window_with_document  (MousepadWindo
+                                                                    MousepadApplication        *application);
+ static void        mousepad_application_new_window                (MousepadWindow             *existing,
+                                                                    MousepadApplication        *application);
++static void        mousepad_application_load_css                  (void);
+ 
+ 
+ 
+@@ -60,6 +61,23 @@ G_DEFINE_TYPE (MousepadApplication, mousepad_application, G_TYPE_OBJECT)
+ 
+ 
+ 
++static void
++mousepad_application_load_css (void)
++{
++  GtkCssProvider *css_provider;
++  GdkScreen *screen;
++
++  css_provider = gtk_css_provider_new ();
++
++  gtk_css_provider_load_from_data (css_provider,
++    ".mousepad-document { border-left-width: 0px; border-right-width: 0px; }", -1, NULL);
++  screen = gdk_screen_get_default ();
++  gtk_style_context_add_provider_for_screen (screen, GTK_STYLE_PROVIDER (css_provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
++  g_object_unref (css_provider);
++}
++
++
++
+ static void
+ mousepad_application_class_init (MousepadApplicationClass *klass)
+ {
+@@ -211,6 +229,7 @@ mousepad_application_create_window (MousepadApplication *application)
+ 
+   /* hook up the new window */
+   mousepad_application_take_window (application, GTK_WINDOW (window));
++  mousepad_application_load_css ();
+ 
+   /* connect signals */
+   g_signal_connect (G_OBJECT (window), "new-window-with-document", G_CALLBACK (mousepad_application_new_window_with_document), application);
+diff --git a/mousepad/mousepad-document.c b/mousepad/mousepad-document.c
+index 7a3c5fa..71bd2df 100644
+--- a/mousepad/mousepad-document.c
++++ b/mousepad/mousepad-document.c
+@@ -167,10 +167,15 @@ static void
+ mousepad_document_init (MousepadDocument *document)
+ {
+   GtkTargetList        *target_list;
++  GtkStyleContext      *context;
+ 
+   /* private structure */
+   document->priv = mousepad_document_get_instance_private (document);
+ 
++  /* add widget to css class */
++  context = gtk_widget_get_style_context (document);
++  gtk_style_context_add_class (context, "mousepad-document");
++
+   /* initialize the variables */
+   document->priv->utf8_filename = NULL;
+   document->priv->utf8_basename = NULL;
+-- 
+2.21.0
+

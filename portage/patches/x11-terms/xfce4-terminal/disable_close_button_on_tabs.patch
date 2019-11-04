@@ -1,0 +1,48 @@
+diff -ur a/terminal/terminal-screen.c b/terminal/terminal-screen.c
+--- a/terminal/terminal-screen.c	2019-07-03 01:00:01.000000000 +0300
++++ b/terminal/terminal-screen.c	2019-11-04 14:18:22.733464048 +0300
+@@ -2652,25 +2652,26 @@
+                           G_BINDING_SYNC_CREATE);
+   gtk_widget_set_has_tooltip (screen->tab_label, TRUE);
+ 
+-  button = gtk_button_new ();
+-#if GTK_CHECK_VERSION (3,20,0)
+-  gtk_widget_set_focus_on_click (button, FALSE);
+-#else
+-  gtk_button_set_focus_on_click (GTK_BUTTON (button), FALSE);
+-#endif
+-  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
+-  gtk_widget_set_can_focus (button, FALSE);
+-  gtk_widget_set_can_default (button, FALSE);
+-  gtk_widget_set_tooltip_text (button, _("Close this tab"));
+-  gtk_widget_set_halign (button, GTK_ALIGN_CENTER);
+-  gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
+-  gtk_container_add (GTK_CONTAINER (hbox), button);
+-  g_signal_connect_swapped (G_OBJECT (button), "clicked",
+-                            G_CALLBACK (terminal_screen_close_tab_cb), screen);
+ 
+-  /* button image */
+-  image = gtk_image_new_from_icon_name ("window-close-symbolic", GTK_ICON_SIZE_MENU);
+-  gtk_container_add (GTK_CONTAINER (button), image);
++//   button = gtk_button_new ();
++// #if GTK_CHECK_VERSION (3,20,0)
++//   gtk_widget_set_focus_on_click (button, FALSE);
++// #else
++//   gtk_button_set_focus_on_click (GTK_BUTTON (button), FALSE);
++// #endif
++//   gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
++//   gtk_widget_set_can_focus (button, FALSE);
++//   gtk_widget_set_can_default (button, FALSE);
++//   gtk_widget_set_tooltip_text (button, _("Close this tab"));
++//   gtk_widget_set_halign (button, GTK_ALIGN_CENTER);
++//   gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
++//   gtk_container_add (GTK_CONTAINER (hbox), button);
++//   g_signal_connect_swapped (G_OBJECT (button), "clicked",
++//                             G_CALLBACK (terminal_screen_close_tab_cb), screen)
++
++//   /* button image */
++//   image = gtk_image_new_from_icon_name ("window-close-symbolic", GTK_ICON_SIZE_MENU);
++//   gtk_container_add (GTK_CONTAINER (button), image);
+ 
+   /* show the box and all its widgets */
+   gtk_widget_show_all (hbox);

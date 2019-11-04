@@ -1,4 +1,5 @@
 dev-python/pytest
 dev-go/get-ego-vendor
 dev-util/cargo-ebuild
+dev-python/mkdocs
 
