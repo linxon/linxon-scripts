@@ -48,5 +48,5 @@ alias cdcloud='cd -P /media/Xlam/Cloud/'
 alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 [ -d "/run/media/${USER}" ] && alias cdm='cd /run/media/${USER}'
 [ -d "/etc/portage" ] && alias cdp='cd /etc/portage'
-[ -x /usr/bin/ebuildtester ] && alias ebuildtester='ebuildtester --threads $(($(nproc)+1)) --portage-dir $(portageq get_repo_path / gentoo) --rm'
+[ -x /usr/bin/ebuildtester ] && alias ebuildtester='ebuildtester --threads $(($(nproc)+1)) --portage-dir $(portageq get_repo_path / gentoo) --ccache-dir $(portageq envvar CCACHE_DIR) --rm'
 
