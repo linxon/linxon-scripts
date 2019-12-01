@@ -48,5 +48,14 @@ alias cdcloud='cd -P /media/Xlam/Cloud/'
 alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 [ -d "/run/media/${USER}" ] && alias cdm='cd /run/media/${USER}'
 [ -d "/etc/portage" ] && alias cdp='cd /etc/portage'
-[ -x /usr/bin/ebuildtester ] && alias ebuildtester='ebuildtester --threads $(($(nproc)+1)) --portage-dir $(portageq get_repo_path / gentoo) --ccache-dir $(portageq envvar CCACHE_DIR)'
+[ -x /usr/bin/ebuildtester ] && alias ebuildtester='ebuildtester \
+	--threads $(($(nproc)+1)) \
+	--portage-dir $(portageq get_repo_path / gentoo) \
+	--ccache-dir $(portageq envvar CCACHE_DIR) \
+	--shell-env "USE=$(portageq envvar USE)" \
+	--shell-env "CFLAGS=$(portageq envvar CFLAGS)" \
+	--shell-env "CXXFLAGS=$(portageq envvar CXXFLAGS)" \
+	--shell-env "CPU_FLAGS_X86=$(portageq envvar CPU_FLAGS_X86)" \
+	--shell-env "LLVM_TARGETS=$(portageq envvar LLVM_TARGETS)" \
+	--shell-env "VIDEO_CARDS=nouveau"'
 
