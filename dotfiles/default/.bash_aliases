@@ -52,9 +52,10 @@ alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 	--threads $(($(nproc)+1)) \
 	--portage-dir $(portageq get_repo_path / gentoo) \
 	--ccache-dir $(portageq envvar CCACHE_DIR) \
-	--shell-env "USE=$(portageq envvar USE)" \
 	--shell-env "CFLAGS=$(portageq envvar CFLAGS)" \
 	--shell-env "CXXFLAGS=$(portageq envvar CXXFLAGS)" \
+	--shell-env "FCFLAGS=$(portageq envvar FCFLAGS)" \
+	--shell-env "FFLAGS=$(portageq envvar FFLAGS)" \
 	--shell-env "CPU_FLAGS_X86=$(portageq envvar CPU_FLAGS_X86)" \
 	--shell-env "LLVM_TARGETS=$(portageq envvar LLVM_TARGETS)" \
 	--shell-env "VIDEO_CARDS=nouveau"'
