@@ -2,4 +2,5 @@ dev-python/pytest
 dev-go/get-ego-vendor
 dev-util/cargo-ebuild
 dev-python/mkdocs
-dev-python/ebuildtester
+dev-python/ebuildtester::linxon
+dev-go/go-license-detector
