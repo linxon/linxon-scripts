@@ -9,12 +9,6 @@ if [ "$TERM" != dumb ] && [ -f ~/.bash_env ]; then
 	source ~/.bash_env
 fi
 
-if [ ! $BASH_VERSINFO -le 4 ]; then
-	verbash=`bash --version | grep -iom 1 "version.* [0-9].."`
-	echo -e "К сожелению, версия BASH ($verbash) - не поддерживается! Для ~/.bash_helpers необходима версия выше 4.x\n"
-	echo "вы можете удалить это сообщение закоментировав первые строки в ~/.bash_helpers"
-fi
-
 if [[ -x /usr/bin/notify-send && "${TERM,,}" == 'xterm' ]]; then
 	# notify-send - доступен
 	IS_NOTIFY=1
