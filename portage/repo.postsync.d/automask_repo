@@ -39,16 +39,13 @@ _update_maskfile() {
 
 _is_excluded() {
 	local overlay=$1
-	if [ ! -f "${_PMASK_TRUSTED_OVERLAYS}" ]; then
-		return 1
-	fi
 
+	[ ! -f "${_PMASK_TRUSTED_OVERLAYS}" ] && return 1
 	for ex_overlay in $(< "${_PMASK_TRUSTED_OVERLAYS}"); do
 		if [[ "${ex_overlay}" == "${overlay}" ]]; then
 			if ! [ -f "${_PMASK_FILEPATH}" ]; then
 				return 1
 			fi
-
 			for atom in $(< "${_PMASK_FILEPATH}"); do
 				if [[ "${atom}" == "*/*::${ex_overlay}" ]]; then
 					if _update_maskfile "${ex_overlay}"; then
@@ -58,11 +55,9 @@ _is_excluded() {
 					return
 				fi
 			done
-
 			if (( $_UNMASKED == 0 )); then
 				_SKIPPED=3
 			fi
-
 			return
 		fi
 	done
@@ -89,9 +84,7 @@ _cleanup() {
 	local masked_repo
 	local to_remove=0
 
-	if [ ! -f "${_PMASK_FILEPATH}" ]; then
-		return 1
-	fi
+	[ ! -f "${_PMASK_FILEPATH}" ] && return 1
 
 	for masked_repo in $(< "${_PMASK_FILEPATH}"); do
 		for av_repo in $_LS_AVALIBLE_REPO; do
