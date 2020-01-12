@@ -17,7 +17,7 @@ set shiftwidth=4
 set tabstop=4
 set smartindent
 set directory=/tmp
-set formatoptions=cro
+set formatoptions-=cro
 syntax on
 
 " set spell spelllang=ru,en
