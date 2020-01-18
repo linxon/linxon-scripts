@@ -1,7 +1,6 @@
 ####################################################################
 ## Автор: Yury Martunov (http://www.linxon.ru)
 ## E-mail: email@linxon.ru
-## ICQ: 616015333
 ## Telegram: https://t.me/linxon
 ####################################################################
 
@@ -9,16 +8,11 @@ if [ "$TERM" != dumb ] && [ -f ~/.bash_env ]; then
 	source ~/.bash_env
 fi
 
-if [[ -x /usr/bin/notify-send && "${TERM,,}" == 'xterm' ]]; then
-	# notify-send - доступен
+if [[ -x /usr/bin/notify-send && "${TERM,,}" =~ ^xterm* ]]; then
 	IS_NOTIFY=1
 else
-	# notify-send - НЕ доступен
 	IS_NOTIFY=0
 fi
-
-#echo -e "\033[1m\033[32mПолезная информация:"
-#echo ${PATH}
 
 ####################################################################
 # Фильтры, которые содержат имена расширения файлов. 
@@ -46,126 +40,14 @@ yesno_ask() {
 	[[ ${ASK_RES,,} =~ ^(yes|y)$ ]] || return 1
 }
 
-cleanup () {
-
-	case $1 in
-
-		"--chrome") {
-			if [ -d "$HOME/.cache/google-chrome/" ]; then
-				if [ ! -z "`pidof chrome`" ]; then
-					echo "Shutdown google-chrome..." && sleep 5 && killall -q 0 chrome
-				fi
-				echo "Cleaning google-chrome cache..." && sleep 5 && rm -r -v ~/.cache/google-chrome
-			fi
-		};;
-
-		"--firefox") {
-			if [ -d "$HOME/.cache/mozilla/firefox/" ]; then
-				if [ ! -z "`pidof firefox`" ]; then
-					echo "Shutdown firefox..." && sleep 5 && killall -q 0 firefox
-				fi
-				echo "Cleaning firefox cache..." && sleep 5 && rm -r -v ~/.cache/mozilla/firefox/
-			fi
-		};;
-
-		"--thunderbird") {
-			if [ -d "$HOME/.cache/thunderbird/" ]; then
-				if [ ! -z "`pidof thunderbird`" ]; then
-					echo "Shutdown thunderbird..." && sleep 5 && killall -q 0 thunderbird
-				fi
-				echo "Cleaning thunderbird cache..." && sleep 5 && rm -r -v ~/.cache/thunderbird/
-			fi
-		};;
-
-		"--composer") {
-			if [ -d "$HOME/.composer/" ]; then
-				echo "Cleaning composer cache..." && sleep 5 && rm -r -v ~/.composer/cache/files/* ~/.composer/cache/repo/*
-			fi
-		};;
-
-		"--soft-center") {
-				# Software Center
-				if [ -d "$HOME/.cache/software-center/" ]; then
-				
-					echo "Cleaning software center cache..." && sleep 5 
-					
-					echo "    Software icons cache"
-					rm -rf ~/.cache/software-center/icons
-					
-					echo "    Software downloads cache"
-					rm -rf ~/.cache/software-center/download-cache
-					
-					echo "    Software log files"
-					rm -rf ~/.cache/software-center/*.log.* ~/.cache/software-center/*.log
-					
-				fi
-		};;
-
-		"--thumbs") {
-			if [ -d "$HOME/.cache/thumbnails/" ]; then
-				if [ "$2" = "--wipe" ]; then
-					[ -x /usr/bin/wipe ] && echo "(5-sec) Wiping thumbnails cache..." && sleep 5 && wipe -rf ~/.cache/thumbnails/*/*.png ~/.thumbnails/*/*.png
-				else
-					echo "(5-sec) Cleaning thumbnails cache..." && sleep 5 && rm -v -f ~/.cache/thumbnails/*/*.png ~/.thumbnails/*/*.png
-				fi
-				
-			fi
-		};;
-
-		"--help") {
-			echo -e "Список доступных команд:
-			\n	--chrome — \"Для очистки кеша Google Chrome\" 
-			\n	--firefox — \"Очистка кеша браузера Firefox\" 
-			\n	--thunderbird — \"Кеша почтового клиента Thunderbird\"
-			\n	--composer — \"Кеша Composer'a\"
-			\n	--soft-center — \"Очистка кеша Software-center (Ubuntu системы)\"
-			\n	--thumbs — \"Очистка изображений-превьюшек мультимедия (--wipe чтобы удалить навсегда)\"
-			"
-		};;
-
-		*) {
-			echo -e "--help  \"Для получения списка команд\"\n"
-
-			if [ -x /usr/bin/apt-get ]; then
-				echo "Обновление APT репозитория..." && sleep 1
-				sudo apt-get update
-				sudo apt-get upgrade -y
-				
-				echo "Cleaning..." && sleep 1
-				sudo apt-get autoremove -y
-				sudo apt-get autoclean
-				sudo apt-get clean
-			fi
-
-			if [ -x /usr/bin/emerge ]; then 
-
-				[ -x /usr/bin/layman ] && {
-					read -r -p "Запустить синхронизацию каталогов layman? [y/N] " response
-					[[ ${response,,} =~ ^(yes|y)$ ]] && sudo /usr/bin/layman -S
-				}
-
-				[ -x /usr/bin/eix-sync ] && {
-					read -r -p "Запустить синхронизацию каталогов portage? [y/N] " response
-					[[ ${response,,} =~ ^(yes|y)$ ]] && sudo /usr/bin/eix-sync
-				}
-
-				read -r -p "Проверить обновления всех пакетов в @world? [y/N] " response
-				[[ ${response,,} =~ ^(yes|y)$ ]] && sudo /usr/bin/emerge -avuDN --with-bdeps=y @world
-
-				if [ -x /usr/bin/eclean-dist ]; then
-					echo -e "\nУдаление старых исходников в /usr/portage/distfiles..."
-					if $(/usr/bin/id -nG "${USER}" | grep -qw "portage"); then
-						rm -fvi $(eclean-dist -qdp)
-					else
-						[ -x /usr/bin/sudo ] && /usr/bin/sudo rm -fvi $(eclean-dist -qdp) \
-											 || echo "Необходимы права доступа!"
-					fi
-				fi
-			fi
-		};;
-
-	esac
-}
+if (( ${IS_NOTIFY} == 1 )); then
+	function alert() {
+		[ -f "${CMDLINE_ALERT_SOUND}" ] && paplay "${CMDLINE_ALERT_SOUND}"
+		notify-send --urgency=low -i \
+			"$([ $? = 0 ] && echo terminal || echo error)" \
+			"$(history|tail -n1|sed -e '\'\'s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'\')"
+	}
+fi
 
 # Создание архивов более простым способом (если торопишься куда-нибудь)
 mktar () { tar cvf  "${1%%/}.tar"     "${1%%/}/"; }

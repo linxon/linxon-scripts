@@ -243,14 +243,6 @@ if [[  "$TERM" != dumb && -x /usr/sbin/tripwire && -d /var/lib/tripwire/report &
 	alias tw.update='tripwire --update -r `last.tw.report`'
 fi
 
-## Используется для уведомления после завершения долговыполняемых команд 
-## Пример: emerge --sync && alert "Синхронизация завершена" (заметь, что используется оператор — &&)
-if [ "$TERM" != dumb ] && [[ -x /usr/bin/notify-send && "${TERM,,}" == 'xterm' ]] ; then
-#	ALERT_SOUND="/home/linxon/.sounds/alert1.wav"
-#	&& [ -f "${ALERT_SOUND}" ] && paplay ${ALERT_SOUND}
-	alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-fi
-
 ## Подключение остальных пользовательских алиасов
 if [ "$TERM" != dumb ] && [ -f ~/.bash_aliases ]; then
 	source ~/.bash_aliases
