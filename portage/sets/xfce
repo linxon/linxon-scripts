@@ -22,7 +22,6 @@ media-fonts/lfpfonts-fix
 media-fonts/monafont
 media-fonts/mplus-outline-fonts
 media-fonts/noto
-media-fonts/noto-emoji
 media-fonts/roboto
 media-fonts/sazanami
 media-fonts/sil-abyssinica
@@ -49,6 +48,7 @@ xfce-extra/thunar-archive-plugin
 xfce-extra/thunar-links-installer
 xfce-extra/thunar-media-tags-plugin
 xfce-extra/thunar-shares-plugin
+xfce-extra/thunar-torrent-property
 xfce-extra/xfce4-clipman-plugin
 xfce-extra/xfce4-datetime-plugin
 xfce-extra/xfce4-diskperf-plugin
