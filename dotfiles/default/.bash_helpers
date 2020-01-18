@@ -42,10 +42,10 @@ yesno_ask() {
 
 if (( ${IS_NOTIFY} == 1 )); then
 	function alert() {
-		[ -f "${CMDLINE_ALERT_SOUND}" ] && paplay "${CMDLINE_ALERT_SOUND}"
 		notify-send --urgency=low -i \
 			"$([ $? = 0 ] && echo terminal || echo error)" \
-			"$(history|tail -n1|sed -e '\'\'s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'\')"
+			"$(history|tail -n1|sed -e 's/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//')" \
+			&& [ -f "${CMDLINE_ALERT_SOUND}" ] && paplay "${CMDLINE_ALERT_SOUND}" > /dev/null 2>&1
 	}
 fi
 
