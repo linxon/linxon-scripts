@@ -510,3 +510,13 @@ if [ -x /usr/bin/fff ]; then
 	}
 fi
 
+function chmog() {
+	if [ $# -ne 4 ]; then
+		echo "Usage: chmog 'mode owner group' <filename>"
+		return 1
+	else
+		chmod $1 $4
+		chown $2 $4
+		chgrp $3 $4
+	fi
+}
