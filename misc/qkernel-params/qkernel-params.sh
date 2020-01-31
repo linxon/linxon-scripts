@@ -36,6 +36,8 @@ __cleanup__() {
 	printf '\n'
 }
 
+echo -e "=== Getting packages with 'kernel_linux' flag. Please wait ...\n"
+
 mkdir -p "${__HOME_DIR__}" || die "failed to create: ${__HOME_DIR__}"
 grep -lr 'kernel_linux' "${PORTAGE_VDB_PATH%/}"/*/*/IUSE \
 			| sed -e 's/\/IUSE$//' \
