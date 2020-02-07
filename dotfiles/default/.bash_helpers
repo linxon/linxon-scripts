@@ -99,15 +99,9 @@ mvg () {
 # Создать папку и переместиться к ней
 mkcdr () { mkdir -p "$1" && cd "$1"; }
 
-json-view () { python -m json.tool "$1"; }
-
-download-site () {
-	wget --random-wait -r -p -e robots=off -U mozilla $1
-}
-
-share-this-folder () {
-	python -m SimpleHTTPServer
-}
+json-view () { python -m json.tool "$@"; }
+download-site () { wget --random-wait -r -p -e robots=off -U mozilla $1; }
+share-this-folder () { python -m SimpleHTTPServer; }
 
 # Конвентировать кодировку из Win-1251 в UTF-8
 convwin1251toutf8 () {
@@ -286,7 +280,6 @@ check_addr() {
 			alert "$1 - в сети!"
 			return 0
 		else
-			#echo -e "\033[1m\033[31m[ERR] \033[0m\033[47m\033[30m$1\033[0m\033[33m - не в сети!"
 			continue
 		fi
 	done
@@ -372,9 +365,8 @@ conv2m4a() {
 }
 
 # Узнать "внешний" IP
-myip() {
-	echo $(curl -s ifconfig.co)
-}
+myip4() { echo $(curl -fsS ipv4.whatismyip.akamai.com); }
+myip6() { echo $(curl -fsS ipv6.whatismyip.akamai.com); }
 
 # Конвертация видео файлов в gif
 vid2gif() {
@@ -398,20 +390,6 @@ vid2gif() {
 		convert -loop 0 "${work_dir}"/ffout*.png "$(echo ${1} | sed 's/\.[^.]*$//').gif"
 		rm -f "${work_dir}"/ffout*.png
 	}
-}
-
-# Генератор паролей
-genpass() {
-	local ex_bin="/usr/bin/openssl"
-	local def_count=18
-
-	[ -n "${1}" ] && def_count="${1}"
-
-	if [ -x ${ex_bin} ]; then
-		${ex_bin} rand -base64 ${def_count}
-	else
-		echo "Для работы необходим пакет: dev-libs/openssl"
-	fi
 }
 
 # Позволяет переименовывать файл или несколько файлов используя хеш в качестве имени
@@ -451,11 +429,6 @@ rename-to-md5() {
 				|| mv -v -- "$f" "$new_f"
 		fi
 	done
-}
-
-cdcd() {
-	local curr_pwd="$(pwd)"
-	cd .. && cd "${curr_pwd}"
 }
 
 update-containers() {
@@ -519,4 +492,23 @@ function chmog() {
 		chown $2 $4
 		chgrp $3 $4
 	fi
+}
+
+# thanks for: https://github.com/michaeltd/dots
+allemojis() {
+	for (( x = 2600; x <= 2700; x++ )); do
+		echo -n -e " \u${x}"
+		sleep .1
+	done
+	echo
+}
+update-date() { sudo ntpdate 0.gentoo.pool.ntp.org; }
+ping-subnet() {
+	# One liner:
+	# for sn in {1..254}.{1..254}; do (ping -c 1 -w 2 192.168.${sn} > /dev/null && echo "UP 192.168.${sn}" &); done
+	for x in {1..254}; do
+		for y in {1..254}; do
+			{ ping -c 1 192.168.${x}.${y} &> /dev/null && echo "UP 192.168.${x}.${y}"; } & sleep .1
+		done
+	done
 }

@@ -243,14 +243,14 @@ if [[  "$TERM" != dumb && -x /usr/sbin/tripwire && -d /var/lib/tripwire/report &
 	alias tw.update='tripwire --update -r `last.tw.report`'
 fi
 
-## Подключение остальных пользовательских алиасов
-if [ "$TERM" != dumb ] && [ -f ~/.bash_aliases ]; then
-	source ~/.bash_aliases
-fi
-
 ## Подключаем пользовательские скрипты, команды
 if [ "$TERM" != dumb ] && [ -f ~/.bash_helpers ]; then
 	source ~/.bash_helpers
+fi
+
+## Подключение остальных пользовательских алиасов
+if [ "$TERM" != dumb ] && [ -f ~/.bash_aliases ]; then
+	source ~/.bash_aliases
 fi
 
 ## Включить программируемое атозаполнение

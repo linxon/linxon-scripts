@@ -35,12 +35,22 @@ alias wdf='watch -n 1 "df -h"'
 
 alias w="w -i"
 alias lsusb='watch -n 1 lsusb'
-alias cal='cal -Y'
+alias cal='cal -Ym'
 alias ifind_here="find ./ -type f -iname"
 alias pbin='nc pastebin.linxon.ru 9999 | xclip -selection "clipboard" && notify-send --urgency=low -i "$([ $? = 0 ] && echo text-x-script)" "Сервер: pastebin.linxon.ru" "Ссылка была скопирована в буфер обмена..."'
 alias clfile='cat /dev/null >'
 alias mapscii='telnet mapscii.me'
 [ -x /usr/bin/vim ] && alias vimlast='vim $(ls -t | head -1)'
+alias myip='myip4'
+
+# thanks for https://github.com/michaeltd/dots
+alias fixnet='ping -c 1 www.gentoo.org||sudo rc-service dhcpcd restart'
+[ -x /usr/bin/git ] && {
+	alias gst='git status'
+	alias gdf='git diff'
+	alias glp='git log -p'
+	alias glg='git log --graph --pretty="%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
+}
 
 alias cdw='cd -P /tmp/linxon-tmp-files'
 alias cdg='cd -P ~/GitClones'
