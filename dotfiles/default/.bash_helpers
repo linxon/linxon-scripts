@@ -483,7 +483,7 @@ if [ -x /usr/bin/fff ]; then
 	}
 fi
 
-function chmog() {
+chmog() {
 	if [ $# -ne 4 ]; then
 		echo "Usage: chmog 'mode owner group' <filename>"
 		return 1
@@ -511,4 +511,30 @@ ping-subnet() {
 			{ ping -c 1 192.168.${x}.${y} &> /dev/null && echo "UP 192.168.${x}.${y}"; } & sleep .1
 		done
 	done
+}
+
+lynis-diff () {
+	local PERFORM_DIFF=0
+
+	[[ ${IS_ROOT} -eq 1 ]] || {
+		echo "${FUNCNAME[0]}: must be run with root permission!"
+		return 1
+	}
+
+	if [ -f /var/log/lynis-report.dat ]; then
+		cp /var/log/lynis-report.dat /var/log/lynis-report-previous.dat || return 1
+		PERFORM_DIFF=1
+	fi
+
+	/usr/sbin/lynis --cronjob || return 1
+
+	if [ ${PERFORM_DIFF} -eq 1 ]; then
+		DIFFERENCES=$(diff --ignore-matching-lines report_datetime /var/log/lynis-report.dat /var/log/lynis-report-previous.dat)
+		if [ $? -gt 0 ]; then
+			echo "Found differences:"
+			echo "==========================================================================="
+			diff -y /var/log/lynis-report-previous.dat /var/log/lynis-report.dat | grep -v "report_datetime"
+			echo "==========================================================================="
+		fi
+	fi
 }
