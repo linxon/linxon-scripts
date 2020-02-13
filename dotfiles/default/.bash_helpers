@@ -104,130 +104,130 @@ download-site () { wget --random-wait -r -p -e robots=off -U mozilla $1; }
 share-this-folder () { python -m SimpleHTTPServer; }
 
 # Конвентировать кодировку из Win-1251 в UTF-8
-convwin1251toutf8 () {
-	echo "Convert all WEB files from WINDOWS-1251 to UTF-8 on: `pwd`"
+# convwin1251toutf8 () {
+# 	echo "Convert all WEB files from WINDOWS-1251 to UTF-8 on: `pwd`"
 
-	if yesno_ask; then
-		find ./ -name "*.php" -o -name "*.html" -o -name "*.css" -o -name "*.js"  -type f |
-		while read file
-		do
-		  echo "Convert file:  $file"
-		  mv $file $file.icv
-		  iconv -f WINDOWS-1251 -t UTF-8 $file.icv > $file
-		  rm -f $file.icv
-		done
-	fi
-}
+# 	if yesno_ask; then
+# 		find ./ -name "*.php" -o -name "*.html" -o -name "*.css" -o -name "*.js"  -type f |
+# 		while read file
+# 		do
+# 		  echo "Convert file:  $file"
+# 		  mv $file $file.icv
+# 		  iconv -f WINDOWS-1251 -t UTF-8 $file.icv > $file
+# 		  rm -f $file.icv
+# 		done
+# 	fi
+# }
 
-# Удалить символические ссылки рекурсивно (для битых ссылок использовать флаг -b)
-rmlinks-beta () {
+# # Удалить символические ссылки рекурсивно (для битых ссылок использовать флаг -b)
+# rmlinks-beta () {
 
-	WORK_DIR=`pwd`
+# 	WORK_DIR=`pwd`
 
-	[ -d "$1" ] && WORK_DIR=$1
-	[ -d "$2" ] && WORK_DIR=$2
+# 	[ -d "$1" ] && WORK_DIR=$1
+# 	[ -d "$2" ] && WORK_DIR=$2
 
-	echo '-------------------------------------'
-	echo -e "\033[1mРекурсивное удаление символических ссылок в директории: \033[33m${WORK_DIR}\033[0m"
-	echo '-------------------------------------'
-	sleep 1
+# 	echo '-------------------------------------'
+# 	echo -e "\033[1mРекурсивное удаление символических ссылок в директории: \033[33m${WORK_DIR}\033[0m"
+# 	echo '-------------------------------------'
+# 	sleep 1
 
-	TEMP=0
-	FIND_STAT=0
-	LINKS=`find "${WORK_DIR}" -type l`
+# 	TEMP=0
+# 	FIND_STAT=0
+# 	LINKS=`find "${WORK_DIR}" -type l`
 	
-	case $1 in
+# 	case $1 in
 
-		'-b') ## Только для нерабочих ссылок
+# 		'-b') ## Только для нерабочих ссылок
 
-		for LINK in $(find ${WORK_DIR} -type l); do
-			echo $LINK
-			break
-			if [[ ! -z `file --mime "${LINK}" | grep -oi -m 1 "inode/symlink"` && ! -f "${LINK}" ]]; then
-				echo "Найден: `file \"${LINK}\"`"
-				BR_LINKS="${BR_LINKS} ${LINK}"
-				FIND_STAT=$((FIND_STAT+1))
-			fi
-		done
+# 		for LINK in $(find ${WORK_DIR} -type l); do
+# 			echo $LINK
+# 			break
+# 			if [[ ! -z `file --mime "${LINK}" | grep -oi -m 1 "inode/symlink"` && ! -f "${LINK}" ]]; then
+# 				echo "Найден: `file \"${LINK}\"`"
+# 				BR_LINKS="${BR_LINKS} ${LINK}"
+# 				FIND_STAT=$((FIND_STAT+1))
+# 			fi
+# 		done
 
-		if [ ${FIND_STAT} -ge 1 ]; then
-			echo '-------------------------------------'
-			echo -e "\033[1mДля удаления введите - \033[1m\033[31myes\033[0m"
+# 		if [ ${FIND_STAT} -ge 1 ]; then
+# 			echo '-------------------------------------'
+# 			echo -e "\033[1mДля удаления введите - \033[1m\033[31myes\033[0m"
 
-			yesno_ask && {
-				for BR_LINK in $BR_LINKS; do
-					echo -e "\033[1m\033[33m[WAIT] \033[0m\033[32mУдаляем битую ссылку: \033[1m\033[31m${BR_LINK} \033[0m(Ctrl+C - для отмены)" && sleep ${TEMP}
-					unlink "${BR_LINK}"
-				done
-				BR_LINKS=""
-			}
-		fi;;
+# 			yesno_ask && {
+# 				for BR_LINK in $BR_LINKS; do
+# 					echo -e "\033[1m\033[33m[WAIT] \033[0m\033[32mУдаляем битую ссылку: \033[1m\033[31m${BR_LINK} \033[0m(Ctrl+C - для отмены)" && sleep ${TEMP}
+# 					unlink "${BR_LINK}"
+# 				done
+# 				BR_LINKS=""
+# 			}
+# 		fi;;
 
-		*) ## Для всех, всключая рабочие и нерабочие ссылки (осторожно!)
+# 		*) ## Для всех, всключая рабочие и нерабочие ссылки (осторожно!)
 		
-		for LINK in "${LINKS}"; do
-			if [ -z `file --mime "$LINK" | grep -oi -m 1 "inode/symlink" > /dev/null` ]; then
-				echo "Найден: ${LINK}"
-				BR_LINKS="${BR_LINKS} ${LINK}"
-				FIND_STAT=$((FIND_STAT+1))
-			fi
-		done
+# 		for LINK in "${LINKS}"; do
+# 			if [ -z `file --mime "$LINK" | grep -oi -m 1 "inode/symlink" > /dev/null` ]; then
+# 				echo "Найден: ${LINK}"
+# 				BR_LINKS="${BR_LINKS} ${LINK}"
+# 				FIND_STAT=$((FIND_STAT+1))
+# 			fi
+# 		done
 
-		if [ ${FIND_STAT} -ge 1 ]; then
-			echo '-------------------------------------'
-			echo -e "\033[1mДля удаления введите - \033[1m\033[31myes\033[0m"
+# 		if [ ${FIND_STAT} -ge 1 ]; then
+# 			echo '-------------------------------------'
+# 			echo -e "\033[1mДля удаления введите - \033[1m\033[31myes\033[0m"
 
-			yesno_ask && {
-				for BR_LINK in $BR_LINKS; do
-					echo -e "\033[1m\033[33m[WAIT] \033[0m\033[32mУдаляем ссылку: \033[1m\033[31m${BR_LINK} \033[0m(Ctrl+C - для отмены)" && sleep ${TEMP}
-					unlink "${BR_LINK}"
-				done
-				BR_LINKS=""
-			}
-		fi;;
+# 			yesno_ask && {
+# 				for BR_LINK in $BR_LINKS; do
+# 					echo -e "\033[1m\033[33m[WAIT] \033[0m\033[32mУдаляем ссылку: \033[1m\033[31m${BR_LINK} \033[0m(Ctrl+C - для отмены)" && sleep ${TEMP}
+# 					unlink "${BR_LINK}"
+# 				done
+# 				BR_LINKS=""
+# 			}
+# 		fi;;
 
-	esac
+# 	esac
 
-	if [ "${FIND_STAT}" == '0' ]; then
-		echo -e "\033[1m\033[32m[OK] \033[0mСимволические ссылки не найдены"
-	fi
+# 	if [ "${FIND_STAT}" == '0' ]; then
+# 		echo -e "\033[1m\033[32m[OK] \033[0mСимволические ссылки не найдены"
+# 	fi
 
-}
-rmlinks () {
+# }
+# rmlinks () {
 
-	echo '-------------------------------------'
-	echo -e "\033[1mRemove recursive symlinks on: \033[33m`pwd`/*\033[0m (current folder)"
+# 	echo '-------------------------------------'
+# 	echo -e "\033[1mRemove recursive symlinks on: \033[33m`pwd`/*\033[0m (current folder)"
 	
-	sleep 1
+# 	sleep 1
 
-	if yesno_ask; then
+# 	if yesno_ask; then
 
-		case $1 in
+# 		case $1 in
 
-			## For only Broken symlinks
-			'-b')	find "$(pwd)" -type l |
-			while read linkname
-			do
-				if [ ! -z `file --mime "$linkname" | grep -oi -m 1 "inode/symlink"` ] && [ ! -f "$linkname" ]; then
-					echo -e "\033[32mRemoving broken symlink: \033[31m$linkname @"
-					unlink "$linkname"
-				fi
-			done;;
+# 			## For only Broken symlinks
+# 			'-b')	find "$(pwd)" -type l |
+# 			while read linkname
+# 			do
+# 				if [ ! -z `file --mime "$linkname" | grep -oi -m 1 "inode/symlink"` ] && [ ! -f "$linkname" ]; then
+# 					echo -e "\033[32mRemoving broken symlink: \033[31m$linkname @"
+# 					unlink "$linkname"
+# 				fi
+# 			done;;
 
-			## All symlinks
-			*)	find "$(pwd)" -type l |
-			while read linkname
-			do
-				if [ ! -z `file --mime "$linkname" | grep -oi -m 1 "inode/symlink"` ]; then
-					echo -e "\033[32mRemoving symlink: \033[31m$linkname @"
-					unlink "$linkname"
-				fi
-			done;;
+# 			## All symlinks
+# 			*)	find "$(pwd)" -type l |
+# 			while read linkname
+# 			do
+# 				if [ ! -z `file --mime "$linkname" | grep -oi -m 1 "inode/symlink"` ]; then
+# 					echo -e "\033[32mRemoving symlink: \033[31m$linkname @"
+# 					unlink "$linkname"
+# 				fi
+# 			done;;
 
-		esac
+# 		esac
 
-	fi
-}
+# 	fi
+# }
 
 # Копировать путь файла или папки в буфер обмена
 pcopy() {
@@ -239,7 +239,7 @@ pcopy() {
 			echo "$(pwd)" && echo -n $(pwd) | xclip -selection "clipboard"
 			[ -x /usr/bin/notify-send ] && notify-send --urgency=low -i "$([ $? = 0 ] && echo xfce4-clipman-plugin)" "Скопирован в буфер обмена как:" $(pwd)
 		fi
-	} || echo "xClip package required!"
+	} || echo "xClip package is required!"
 }
 
 rsha256sum() {

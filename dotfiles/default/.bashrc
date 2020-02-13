@@ -147,7 +147,6 @@ if [ "$TERM" != dumb ]; then
 		alias egrep='egrep --color=auto'
 	}
 
-	## Навигация по каталогам
 	alias cdl='cd "$1" && ls -l'
 	alias cdll='cd "$1" && ls -alF'
 	alias ..='cd ..'
@@ -157,8 +156,8 @@ if [ "$TERM" != dumb ]; then
 	alias ......='cd ../../../../..'
 	alias .......='cd ../../../../../..'
 	alias ........='cd ../../../../../../..'
+#	alias .........='cd ../../../../../../../..'
 
-	## Прочие команды
 	alias l='ls -CF'
 	alias ll='ls -lh'
 	alias lll='ls -alFh'
@@ -169,6 +168,7 @@ if [ "$TERM" != dumb ]; then
 	alias li='ls -lih'
 	alias llr='ls -lhR'
 	alias hh='history'
+	alias hhm='history | awk '{ $1=""; print $0 }' | sort | uniq -c | sort -nr | head -20'
 
 	[ -x /usr/bin/equery ] && {
 		alias eqf='/usr/bin/equery f'
@@ -266,7 +266,7 @@ fi
 ## Прочее...
 ###########################
 ## PHPBREW Requirement
-[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
+#[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
 
 ## distcc - рабочий каталог (необходим для компиляции пользователем)
 if [ -x /usr/bin/distccd ]; then
@@ -276,9 +276,9 @@ fi
 ## Локальные файлы пользователи для запуска
 LOC_BIN_PATH="${HOME}/.local/bin"
 if [ -d ${LOC_BIN_PATH} ]; then
-	export PATH="${PATH}:${LOC_BIN_PATH}"
+	export PATH="${LOC_BIN_PATH}:${PATH}"
 else
-	mkdir -p ${LOC_BIN_PATH} && export PATH="${PATH}:${LOC_BIN_PATH}"
+	mkdir -p ${LOC_BIN_PATH} && export PATH="${LOC_BIN_PATH}:${PATH}"
 fi
 
 ## Локальные страницы помощи
