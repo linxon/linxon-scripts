@@ -168,7 +168,6 @@ if [ "$TERM" != dumb ]; then
 	alias li='ls -lih'
 	alias llr='ls -lhR'
 	alias hh='history'
-	alias hhm='history | awk '{ $1=""; print $0 }' | sort | uniq -c | sort -nr | head -20'
 
 	[ -x /usr/bin/equery ] && {
 		alias eqf='/usr/bin/equery f'
