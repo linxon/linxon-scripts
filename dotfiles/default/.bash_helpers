@@ -538,3 +538,5 @@ lynis-diff () {
 		fi
 	fi
 }
+
+mvapaste() { curl -s http://paste.mva.name/ -H "Expect:" --data-binary "@${1--}"; }
