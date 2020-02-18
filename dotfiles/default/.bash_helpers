@@ -285,51 +285,51 @@ check_addr() {
 	done
 }
 
-## Ненужно, есть прекрасный пакет: MAT
-#wipe-allminfo() {
-#
-#	if ! [ -x /usr/bin/exiftool ]; then
-#		echo "Необходим пакет - exiftool"
-#		exit
-#	fi
-#
-#	SPACE_BAR1="         "
-#	SPACE_BAR2="    "
-#	for IMAGE in "$@"; 
-#	do
-#		[ -f "${IMAGE}" ] && {
-#			echo -e "\033[1m\033[33mОчистка META информации: \033[0m\033[30m\033[47m${IMAGE}\033[0m"
-#
-#			N_NAME="`md5sum "${IMAGE}" | head -c 32`.${IMAGE##*.}"
-#			echo "${SPACE_BAR2}Новое имя: \"${N_NAME}\""
-#			exiftool -q -all= "${IMAGE}" -o "${N_NAME}" && echo -e "${SPACE_BAR1}... \033[32mготово!\033[0m" || {
-#				echo -e "${SPACE_BAR1}... \033[41mошибка!\033[0m"
-#				continue
-#			}
-#			
-#			#echo "${SPACE_BAR2}Новое имя: \"${N_NAME}.${IMAGE##*.}\""
-#			#mv -f "${IMAGE}" "${N_NAME}.${IMAGE##*.}" && echo -e "${SPACE_BAR1}... \033[32mготово!\033[0m" || echo -e "${SPACE_BAR1}... \033[41mошибка!\033[0m"
-#		} || break
-#	done
-#}
-#mat-clean() {
-#	if test -x /usr/bin/mat; then
-#		if ! [ -z "${@}" ]; then
-#			/usr/bin/mat $@ && {
-#				if [ $IS_NOTIFY -eq 1 ]; then
-#					notify-send --urgency=low -i "$([ $? = 0 ] && echo dialog-ok-apply || echo dialog-error)" "$([ $? = 0 ] && echo 'Готово' || echo 'Ошибка')" "$([ $? = 0 ] && echo 'META-данные были очищены' || echo 'Ошибк во время очистки META-данных')"
-#				fi
-#			}
-#		else
-#			echo "Недостаточно аргументов"
-#		fi
-#	else
-#		echo "Ошибка: отсутствует требуемый пакет: \"emerge -av mat/apt install mat\""
-#		if [ $IS_NOTIFY -eq 1 ]; then
-#			notify-send --urgency=low -i "dialog-error" "Ошибка" "Отсутствует требуемый пакет: \"emerge -av mat/apt install mat\""
-#		fi
-#	fi
-#}
+# # Ненужно, есть прекрасный пакет: MAT
+# wipe-allminfo() {
+
+# 	if ! [ -x /usr/bin/exiftool ]; then
+# 		echo "Необходим пакет - exiftool"
+# 		exit
+# 	fi
+
+# 	SPACE_BAR1="         "
+# 	SPACE_BAR2="    "
+# 	for IMAGE in "$@"; 
+# 	do
+# 		[ -f "${IMAGE}" ] && {
+# 			echo -e "\033[1m\033[33mОчистка META информации: \033[0m\033[30m\033[47m${IMAGE}\033[0m"
+
+# 			N_NAME="`md5sum "${IMAGE}" | head -c 32`.${IMAGE##*.}"
+# 			echo "${SPACE_BAR2}Новое имя: \"${N_NAME}\""
+# 			exiftool -q -all= "${IMAGE}" -o "${N_NAME}" && echo -e "${SPACE_BAR1}... \033[32mготово!\033[0m" || {
+# 				echo -e "${SPACE_BAR1}... \033[41mошибка!\033[0m"
+# 				continue
+# 			}
+			
+# 			#echo "${SPACE_BAR2}Новое имя: \"${N_NAME}.${IMAGE##*.}\""
+# 			#mv -f "${IMAGE}" "${N_NAME}.${IMAGE##*.}" && echo -e "${SPACE_BAR1}... \033[32mготово!\033[0m" || echo -e "${SPACE_BAR1}... \033[41mошибка!\033[0m"
+# 		} || break
+# 	done
+# }
+# mat-clean() {
+# 	if test -x /usr/bin/mat; then
+# 		if ! [ -z "${@}" ]; then
+# 			/usr/bin/mat $@ && {
+# 				if [ $IS_NOTIFY -eq 1 ]; then
+# 					notify-send --urgency=low -i "$([ $? = 0 ] && echo dialog-ok-apply || echo dialog-error)" "$([ $? = 0 ] && echo 'Готово' || echo 'Ошибка')" "$([ $? = 0 ] && echo 'META-данные были очищены' || echo 'Ошибк во время очистки META-данных')"
+# 				fi
+# 			}
+# 		else
+# 			echo "Недостаточно аргументов"
+# 		fi
+# 	else
+# 		echo "Ошибка: отсутствует требуемый пакет: \"emerge -av mat/apt install mat\""
+# 		if [ $IS_NOTIFY -eq 1 ]; then
+# 			notify-send --urgency=low -i "dialog-error" "Ошибка" "Отсутствует требуемый пакет: \"emerge -av mat/apt install mat\""
+# 		fi
+# 	fi
+# }
 
 rmsecure_here() {
 	yesno_ask && {

@@ -15,13 +15,16 @@ media-fonts/freefonts
 media-fonts/ibm-plex-fonts
 media-fonts/intlfonts
 media-fonts/ipamonafont
+media-fonts/jetbrains-mono
 media-fonts/ja-ipafonts
+media-fonts/open-sans
 media-fonts/khmer
 media-fonts/kochi-substitute
 media-fonts/lfpfonts-fix
 media-fonts/monafont
 media-fonts/mplus-outline-fonts
 media-fonts/noto
+media-fonts/noto-emoji
 media-fonts/roboto
 media-fonts/sazanami
 media-fonts/sil-abyssinica
