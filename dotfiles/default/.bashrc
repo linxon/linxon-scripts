@@ -160,6 +160,7 @@ if [ "$TERM" != dumb ]; then
 
 	alias l='ls -CF'
 	alias ll='ls -lh'
+	alias lss='ls -lZ'
 	alias lll='ls -alFh'
 	alias llll='ls -aliFh'
 	alias la='ls -A'
@@ -281,12 +282,12 @@ else
 fi
 
 ## Локальные страницы помощи
-MANDIR_PATH="${HOME}/.local/share/man"
-if [ -d "${MANDIR_PATH}" ]; then
-	export MANPATH="${MANPATH}:${MANDIR_PATH}"
-else
-	mkdir -p "${MANDIR_PATH}" && export MANPATH="${MANPATH}:${MANDIR_PATH}"
-fi
+# MANDIR_PATH="${HOME}/.local/share/man"
+# if [ -d "${MANDIR_PATH}" ]; then
+# 	export MANPATH="${MANPATH}:${MANDIR_PATH}"
+# else
+# 	mkdir -p "${MANDIR_PATH}" && export MANPATH="${MANPATH}:${MANDIR_PATH}"
+# fi
 
 ## Поддержка переключения сторонних языков (напр. Японский)
 #if [ -x /usr/bin/ibus ] && [ "${TERM,,}" == 'xterm' ]; then 
