@@ -4,7 +4,6 @@ app-portage/cpuid2cpuflags
 app-portage/eix
 app-portage/elogv
 app-portage/elogviewer
-app-portage/euscan
 app-portage/euses
 app-portage/flaggie
 app-portage/genlop
