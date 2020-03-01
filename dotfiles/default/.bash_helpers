@@ -540,3 +540,5 @@ lynis-diff () {
 }
 
 mvapaste() { curl -s http://paste.mva.name/ -H "Expect:" --data-binary "@${1--}"; }
+
+benchmarkit() { time sh -c 'echo "scale=5000; a(1)*4" | bc -l'; }
