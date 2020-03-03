@@ -52,6 +52,8 @@ alias fixnet='ping -c 1 www.gentoo.org||sudo rc-service dhcpcd restart'
 	alias glg='git log --graph --pretty="%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
 }
 
+[ -x /usr/bin/pwndbg ] && alias pwndbg='pwndbg -ex init-pwndbg'
+
 alias cdw='cd -P /tmp/linxon-tmp-files'
 alias cdg='cd -P ~/GitClones'
 alias cdcloud='cd -P /media/Xlam/Cloud/'
