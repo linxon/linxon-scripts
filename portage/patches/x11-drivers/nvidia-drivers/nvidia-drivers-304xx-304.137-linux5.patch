@@ -1,0 +1,288 @@
+diff -ur a/kernel/conftest.sh b/kernel/conftest.sh
+--- a/kernel/conftest.sh	2017-09-14 23:51:09.000000000 +0300
++++ b/kernel/conftest.sh	2020-03-09 14:19:11.113918159 +0300
+@@ -2106,6 +2106,18 @@
+ 
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_UNLOAD_HAS_INT_RETURN_TYPE" "" "types"
+         ;;
++        use_timer_setup)
++            #
++            # Determine if timer_setup() must be used instead of init_timer().
++            #
++            CODE="
++            #include <linux/timer.h>
++                void conftest_use_timer_setup() {
++                timer_setup();
++            }"
++
++            compile_check_conftest "$CODE" "NV_USE_TIMER_SETUP" "" "functions"
++        ;;
+     esac
+ }
+ 
+diff -ur a/kernel/Makefile.kbuild b/kernel/Makefile.kbuild
+--- a/kernel/Makefile.kbuild	2017-09-14 23:51:09.000000000 +0300
++++ b/kernel/Makefile.kbuild	2020-03-09 14:23:05.029755423 +0300
+@@ -194,7 +194,8 @@
+ 	cpuhp_setup_state \
+ 	vm_fault_present \
+ 	vm_fault_has_address \
+-	drm_driver_unload_has_int_return_type
++	drm_driver_unload_has_int_return_type \
++	use_timer_setup
+ #
+ # Miscellaneous NVIDIA kernel module build support targets. They are needed
+ # to satisfy KBUILD requirements and to support NVIDIA specifics.
+diff -ur a/kernel/nv.c b/kernel/nv.c
+--- a/kernel/nv.c	2017-09-14 23:51:09.000000000 +0300
++++ b/kernel/nv.c	2020-03-09 14:30:22.831346206 +0300
+@@ -301,7 +301,6 @@
+ #else
+ irqreturn_t   nv_kern_isr(int, void *);
+ #endif
+-void          nv_kern_rc_timer(unsigned long);
+ #if defined(NV_PM_SUPPORT_OLD_STYLE_APM)
+ static int    nv_kern_apm_event(struct pm_dev *, pm_request_t, void *);
+ #endif
+@@ -2075,10 +2074,18 @@
+ }
+ 
+ void nv_kern_rc_timer(
++#ifdef NV_USE_TIMER_SETUP
++    struct timer_list *t
++#else
+     unsigned long data
++#endif
+ )
+ {
++#ifdef NV_USE_TIMER_SETUP
++    nv_linux_state_t *nvl = from_timer(nvl, t, rc_timer);
++#else
+     nv_linux_state_t *nvl = (nv_linux_state_t *) data;
++#endif
+     nv_state_t *nv = NV_STATE_PTR(nvl);
+ 
+     NV_CHECK_PCI_CONFIG_SPACE(nvl->timer_sp, nv, TRUE, TRUE, FALSE);
+@@ -3029,9 +3036,13 @@
+         return -1;
+ 
+     nv_printf(NV_DBG_INFO, "NVRM: initializing rc timer\n");
++#ifdef NV_USE_TIMER_SETUP
++    timer_setup(&nvl->rc_timer, nv_kern_rc_timer, 0);
++#else
+     init_timer(&nvl->rc_timer);
+     nvl->rc_timer.function = nv_kern_rc_timer;
+     nvl->rc_timer.data = (unsigned long) nv;
++#endif
+     nv->rc_timer_enabled = 1;
+     mod_timer(&nvl->rc_timer, jiffies + HZ); /* set our timeout for 1 second */
+     nv_printf(NV_DBG_INFO, "NVRM: rc timer initialized\n");
+diff -ur a/kernel/nv-drm.c b/kernel/nv-drm.c
+--- a/kernel/nv-drm.c	2017-09-14 23:51:09.000000000 +0300
++++ b/kernel/nv-drm.c	2020-03-09 14:27:04.485621814 +0300
+@@ -22,6 +22,15 @@
+ #include <drm/drm_gem.h>
+ #endif
+ 
++/*
++ * drm_pci_(init|exit) were renamed to drm_legacy_pci_(init|exit)
++ * in 4.14; map the new interface names to the old ones.
++ */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
++# define drm_pci_init drm_legacy_pci_init
++# define drm_pci_exit drm_legacy_pci_exit
++#endif
++
+ extern nv_linux_state_t *nv_linux_devices;
+ 
+ static int nv_drm_load(
+@@ -94,7 +103,7 @@
+ };
+ 
+ static struct drm_driver nv_drm_driver = {
+-#if defined(DRIVER_LEGACY)
++#if defined(DRIVER_LEGACY) || LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+     .driver_features = DRIVER_LEGACY,
+ #else
+     .driver_features = 0,
+diff -ur a/kernel/nv.h b/kernel/nv.h
+--- a/kernel/nv.h	2017-09-14 23:51:09.000000000 +0300
++++ b/kernel/nv.h	2020-03-09 13:38:15.437782005 +0300
+@@ -465,27 +465,27 @@
+ 
+ #define NV_TIMERCMP(a, b, CMP)                                              \
+     (((a)->tv_sec == (b)->tv_sec) ?                                         \
+-        ((a)->tv_usec CMP (b)->tv_usec) : ((a)->tv_sec CMP (b)->tv_sec))
++        ((a)->tv_nsec CMP (b)->tv_nsec) : ((a)->tv_sec CMP (b)->tv_sec))
+ 
+ #define NV_TIMERADD(a, b, result)                                           \
+     {                                                                       \
+         (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;                       \
+-        (result)->tv_usec = (a)->tv_usec + (b)->tv_usec;                    \
+-        if ((result)->tv_usec >= 1000000)                                   \
++        (result)->tv_nsec = (a)->tv_nsec + (b)->tv_nsec;                    \
++        if ((result)->tv_nsec >= NSEC_PER_SEC)                              \
+         {                                                                   \
+             ++(result)->tv_sec;                                             \
+-            (result)->tv_usec -= 1000000;                                   \
++            (result)->tv_nsec -= NSEC_PER_SEC;                              \
+         }                                                                   \
+     }
+ 
+ #define NV_TIMERSUB(a, b, result)                                           \
+     {                                                                       \
+         (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;                       \
+-        (result)->tv_usec = (a)->tv_usec - (b)->tv_usec;                    \
+-        if ((result)->tv_usec < 0)                                          \
++        (result)->tv_nsec = (a)->tv_nsec - (b)->tv_nsec;                    \
++        if ((result)->tv_nsec < 0)                                          \
+         {                                                                   \
+           --(result)->tv_sec;                                               \
+-          (result)->tv_usec += 1000000;                                     \
++          (result)->tv_nsec += NSEC_PER_SEC;                                \
+         }                                                                   \
+     }
+ 
+diff -ur a/kernel/nv-linux.h b/kernel/nv-linux.h
+--- a/kernel/nv-linux.h	2017-09-14 23:51:09.000000000 +0300
++++ b/kernel/nv-linux.h	2020-03-09 13:34:48.756607202 +0300
+@@ -977,12 +977,21 @@
+         __ret;                                               \
+      })
+ #elif (NV_SMP_CALL_FUNCTION_ARGUMENT_COUNT == 3)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)
+ #define NV_SMP_CALL_FUNCTION(func, info, wait)               \
+     ({                                                       \
+         int __ret = smp_call_function(func, info, wait);     \
+         __ret;                                               \
+      })
+ #else
++#define NV_SMP_CALL_FUNCTION(func, info, wait)               \
++    ({                                                       \
++        int __ret = 0;                                       \
++        smp_call_function(func, info, wait);                 \
++        __ret;                                               \
++     })
++#endif
++#else
+ #error "NV_SMP_CALL_FUNCTION_ARGUMENT_COUNT value unrecognized!"
+ #endif
+ #elif defined(CONFIG_SMP)
+@@ -997,12 +1006,21 @@
+         __ret;                                         \
+      })
+ #elif (NV_ON_EACH_CPU_ARGUMENT_COUNT == 3)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0)
+ #define NV_ON_EACH_CPU(func, info, wait)               \
+     ({                                                 \
+         int __ret = on_each_cpu(func, info, wait);     \
+         __ret;                                         \
+      })
+ #else
++#define NV_ON_EACH_CPU(func, info, wait)               \
++    ({                                                 \
++        int __ret = 0;                                 \
++        on_each_cpu(func, info, wait);                 \
++        __ret;                                         \
++    })
++#endif
++#else
+ #error "NV_ON_EACH_CPU_ARGUMENT_COUNT value unrecognized!"
+ #endif
+ #elif !defined(KERNEL_2_4) && defined(CONFIG_SMP)
+diff -ur a/kernel/os-interface.c b/kernel/os-interface.c
+--- a/kernel/os-interface.c	2017-09-14 23:51:09.000000000 +0300
++++ b/kernel/os-interface.c	2020-03-09 13:43:27.115510991 +0300
+@@ -662,12 +662,12 @@
+     NvU32 *useconds
+ )
+ {
+-    struct timeval tm;
++    struct timespec64 tm;
+ 
+-    do_gettimeofday(&tm);
++    ktime_get_real_ts64(&tm);
+ 
+     *seconds = tm.tv_sec;
+-    *useconds = tm.tv_usec;
++    *useconds = tm.tv_nsec / NSEC_PER_USEC;
+ 
+     return RM_OK;
+ }
+@@ -697,9 +697,9 @@
+     unsigned long usec;
+ 
+ #ifdef NV_CHECK_DELAY_ACCURACY
+-    struct timeval tm1, tm2;
++    struct timespec64 tm1, tm2;
+ 
+-    do_gettimeofday(&tm1);
++    ktime_get_real_ts64(&tm1);
+ #endif
+ 
+     if (in_irq() && (MicroSeconds > NV_MAX_ISR_DELAY_US))
+@@ -714,9 +714,9 @@
+         udelay(usec);
+ 
+ #ifdef NV_CHECK_DELAY_ACCURACY
+-    do_gettimeofday(&tm2);
++    ktime_get_real_ts64(&tm2);
+     nv_printf(NV_DBG_ERRORS, "NVRM: osDelayUs %d: 0x%x 0x%x\n",
+-        MicroSeconds, tm2.tv_sec - tm1.tv_sec, tm2.tv_usec - tm1.tv_usec);
++        MicroSeconds, tm2.tv_sec - tm1.tv_sec, tm2.tv_nsec - tm1.tv_nsec);
+ #endif
+ 
+     return RM_OK;
+@@ -737,12 +737,12 @@
+     unsigned long MicroSeconds;
+     unsigned long jiffies;
+     unsigned long mdelay_safe_msec;
+-    struct timeval tm_end, tm_aux;
++    struct timespec64 tm_end, tm_aux;
+ #ifdef NV_CHECK_DELAY_ACCURACY
+-    struct timeval tm_start;
++    struct timespec64 tm_start;
+ #endif
+ 
+-    do_gettimeofday(&tm_aux);
++    ktime_get_real_ts64(&tm_aux);
+ #ifdef NV_CHECK_DELAY_ACCURACY
+     tm_start = tm_aux;
+ #endif
+@@ -757,7 +757,7 @@
+     }
+ 
+     MicroSeconds = MilliSeconds * 1000;
+-    tm_end.tv_usec = MicroSeconds;
++    tm_end.tv_nsec = MicroSeconds * NSEC_PER_USEC;
+     tm_end.tv_sec = 0;
+     NV_TIMERADD(&tm_aux, &tm_end, &tm_end);
+ 
+@@ -776,11 +776,11 @@
+         do
+         {
+             schedule_timeout(jiffies);
+-            do_gettimeofday(&tm_aux);
++            ktime_get_real_ts64(&tm_aux);
+             if (NV_TIMERCMP(&tm_aux, &tm_end, <))
+             {
+                 NV_TIMERSUB(&tm_end, &tm_aux, &tm_aux);
+-                MicroSeconds = tm_aux.tv_usec + tm_aux.tv_sec * 1000000;
++                MicroSeconds = tm_aux.tv_nsec / NSEC_PER_USEC + tm_aux.tv_sec * USEC_PER_SEC;
+             }
+             else
+                 MicroSeconds = 0;
+@@ -798,10 +798,10 @@
+         udelay(MicroSeconds);
+     }
+ #ifdef NV_CHECK_DELAY_ACCURACY
+-    do_gettimeofday(&tm_aux);
++    ktime_get_real_ts64(&tm_aux);
+     timersub(&tm_aux, &tm_start, &tm_aux);
+-    nv_printf(NV_DBG_ERRORS, "NVRM: osDelay %dmsec: %d.%06dsec\n",
+-        MilliSeconds, tm_aux.tv_sec, tm_aux.tv_usec);
++    nv_printf(NV_DBG_ERRORS, "NVRM: osDelay %dmsec: %d.%09dsec\n",
++        MilliSeconds, tm_aux.tv_sec, tm_aux.tv_nsec);
+ #endif
+ 
+     return RM_OK;
