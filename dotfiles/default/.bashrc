@@ -243,12 +243,14 @@ if [[  "$TERM" != dumb && -x /usr/sbin/tripwire && -d /var/lib/tripwire/report &
 	alias tw.update='tripwire --update -r `last.tw.report`'
 fi
 
-## Подключаем пользовательские скрипты, команды
+if [ "$TERM" != dumb ] && [ -f ~/.bash_env ]; then
+	source ~/.bash_env
+fi
+
 if [ "$TERM" != dumb ] && [ -f ~/.bash_helpers ]; then
 	source ~/.bash_helpers
 fi
 
-## Подключение остальных пользовательских алиасов
 if [ "$TERM" != dumb ] && [ -f ~/.bash_aliases ]; then
 	source ~/.bash_aliases
 fi
@@ -297,16 +299,20 @@ fi
 #fi
 
 if [ -n "$DISPLAY" ]; then
-  xset b off # disable pc-speaker
-  xset s off && xset -dpms # disable turnoff screen
+	xset b off # disable pc-speaker
+	xset s off && xset -dpms # disable turnoff screen
 fi
 
 if [ -f /usr/libexec/mc/mc.sh ]; then
 	source /usr/libexec/mc/mc.sh
 fi
 
-# Устанавливаем лимит на вывод для eix -p ...
 if [ -x /usr/bin/eix ]; then
 	export EIX_LIMIT=0
+fi
+
+if [[ -x /usr/bin/stow && $IS_ROOT -ne 1 ]]; then
+	export STOW_DIR="${STOW_DIR:-${HOME}/.local/stow}"
+	[ -d "${STOW_DIR}" ] || mkdir -p "${STOW_DIR}"
 fi
 
