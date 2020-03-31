@@ -44,4 +44,4 @@ if [ $# -eq 0 ]; then
 fi
 
 _update_env
-exec "$@" CC="ccache gcc"
+exec "$@" CC="ccache ${CC:-gcc}"
