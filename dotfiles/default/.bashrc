@@ -1,7 +1,6 @@
 ####################################################################
 ## Автор: Yury Martunov (http://www.linxon.ru)
 ## E-mail: email@linxon.ru
-## ICQ: 616015333
 ## Telegram: https://t.me/linxon
 ####################################################################
 
@@ -15,15 +14,9 @@ if [[ $- != *i* ]] ; then
 	return
 fi
 
-# Put your fun stuff here.
+(( $UID > 0 )) || IS_ROOT=1
 
-[ "$(/usr/bin/id -u)" != "0" ] || IS_ROOT=1
-
-## Не вставлять повторяющиеся строки (команды) в файл истории
-## Смотри bash(1) для конфигурации
 HISTCONTROL="&:ls:[bf]g:exit"
-
-## Настройки для записи истории команд HISTSIZE и HISTFILESIZE в bash(1)
 HISTSIZE=1000
 HISTFILESIZE=2000
 
@@ -69,22 +62,6 @@ if [ "$TERM" != dumb ]; then
 	BWHT="\[\033[47m\]" # background white
 fi
 
-if [ -n "$DISPLAY" ] && [ "$TERM" != dumb ] && [ -f ~/.config/user-dirs.dirs ]; then
-	source ~/.config/user-dirs.dirs
-fi
-
-if [ "$TERM" != dumb ] && [ -f ~/.bash_env ]; then
-	source ~/.bash_env
-fi
-
-if [ "$TERM" != dumb ] && [ -f ~/.bash_helpers ]; then
-	source ~/.bash_helpers
-fi
-
-if [ "$TERM" != dumb ] && [ -f ~/.bash_aliases ]; then
-	source ~/.bash_aliases
-fi
-
 ## Раскоментировать, для принудительной поддержки цветовой схемы в терминале (если не сработает)
 #force_color_prompt=yes
 
@@ -122,36 +99,41 @@ fi
 unset color_prompt force_color_prompt
 
 ## Автоматический заупуск оболочки XFCE после авторизации в tty* (Зачем нам нужны всякие slim или lightdm?)
-if [ "${TERM}" != dumb ] && [[ -x /usr/bin/startxfce4 && "${IS_ROOT}" != "1" ]]; then
-	if [[ $(tty) == "/dev/tty1" && ! ${DISPLAY} ]]; then
-		C_COUNT=0
-		M_COUNT=3
-		CANCEL_STAT=0
+# if [ "${TERM}" != dumb ] && [[ -x /usr/bin/startxfce4 && "${IS_ROOT}" != "1" ]]; then
+# 	if [[ $(tty) == "/dev/tty1" && ! ${DISPLAY} ]]; then
+# 		C_COUNT=0
+# 		M_COUNT=3
+# 		CANCEL_STAT=0
 
-		echo -e "\033[32mЗапуск команды: \033[4m/usr/bin/startxfce4 --with-ck-launch\033[0m\033[32m"
-		echo -en "\033[32mНажмите Ctrl+C для отмены\033[31m"
+# 		echo -e "\033[32mЗапуск команды: \033[4m/usr/bin/startxfce4 --with-ck-launch\033[0m\033[32m"
+# 		echo -en "\033[32mНажмите Ctrl+C для отмены\033[31m"
 
-		trap 'CANCEL_STAT=1' SIGINT
+# 		trap 'CANCEL_STAT=1' SIGINT
 
-		while true; do
-			[ ${CANCEL_STAT} -eq 1 ] && {
-				echo -e "\n"
-				break
-			}
-			if [[ ${C_COUNT} != ${M_COUNT} ]]; then
-				sleep 1 && echo -n "."
-				C_COUNT=$(($C_COUNT + 1))
-			else
-				echo -en "\033[0m" && sleep 1
-				/usr/bin/startxfce4 --with-ck-launch > /dev/null 2>&1 &
+# 		while true; do
+# 			[ ${CANCEL_STAT} -eq 1 ] && {
+# 				echo -e "\n"
+# 				break
+# 			}
+# 			if [[ ${C_COUNT} != ${M_COUNT} ]]; then
+# 				sleep 1 && echo -n "."
+# 				C_COUNT=$(($C_COUNT + 1))
+# 			else
+# 				echo -en "\033[0m" && sleep 1
+# 				/usr/bin/startxfce4 --with-ck-launch > /dev/null 2>&1 &
 
-				break
-			fi
-		done
-	fi
-fi
+# 				break
+# 			fi
+# 		done
+# 	fi
+# fi
 
 if [ "$TERM" != dumb ]; then
+	[ -f ~/.config/user-dirs.dirs ] && source ~/.config/user-dirs.dirs
+	[ -f ~/.bash_env ] && source ~/.bash_env
+	[ -f ~/.bash_helpers ] && source ~/.bash_helpers
+	[ -f ~/.bash_aliases ] && source ~/.bash_aliases
+
 	[ -x /usr/bin/dircolors ] && {
 		test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 		alias ls='ls --color=auto'
@@ -187,69 +169,40 @@ if [ "$TERM" != dumb ]; then
 	alias hh='history'
 
 	[ -x /usr/bin/equery ] && {
-		alias eqf='/usr/bin/equery f'
-		alias equ='/usr/bin/equery u'
-		alias eqh='/usr/bin/equery h'
-		alias eqa='/usr/bin/equery a'
-		alias eqb='/usr/bin/equery b'
-		alias eql='/usr/bin/equery l'
-		alias eqd='/usr/bin/equery d'
-		alias eqg='/usr/bin/equery g'
-		alias eqc='/usr/bin/equery c'
-		alias eqk='/usr/bin/equery k'
-		alias eqm='/usr/bin/equery m'
-		alias eqy='/usr/bin/equery y'
-		alias eqs='/usr/bin/equery s'
-		alias eqw='/usr/bin/equery w'
+		source <(
+			for cmd in {f,u,h,a,b,l,d,g,c,k,m,s,w}; do
+				echo "alias eq${cmd}='/usr/bin/equery ${cmd}'"
+			done
+		)
 	}
 
-	## Цветова схема для системных утилит (требуется пакет - grc последней версии)
-	[ -x /usr/bin/grc ] && {
+	if [ -x /usr/bin/grc ]; then
+		: ${GRC_CONF_EXCLUDE:="sql jobs ulimit ls make"}
+		if [ -f "${HOME}/.grc.bashrc" ]; then
+			source ~/.grc.bashrc
+		else
+			find \
+				/usr/share/grc /usr/local/share/grc/ ~/.grc \
+				-name 'conf.*' -print 2>/dev/null | while read gc
+			do
+				cmd_name="$(basename -- "$gc" | cut -d'.' -f2)"
+				if command -v $cmd_name > /dev/null 2>&1; then
+					cmd_regex="^($(echo ${GRC_CONF_EXCLUDE[*]} | tr '[[:blank:]]' '|'))$"
+					[[ "${cmd_name}" =~ $cmd_regex ]] && continue
+					echo "alias ${cmd_name}='/usr/bin/grc -es --colour=auto -c $gc $cmd_name'"
+				fi
+			done > "${HOME}/.grc.bashrc"
+		fi
+
+		# /etc/grc.conf
 		alias cl='/usr/bin/grc -es --colour=auto'
-
-#		alias configure='cl ./configure'
-		alias ps='cl ps'
-		alias ping='cl ping'
-
-		[ -x /usr/bin/diff ] && alias diff='cl diff'
-#		[ -x /usr/bin/make ] && alias make='cl make'
-		[ -x /usr/bin/gcc ] && alias gcc='cl gcc'
-		[ -x /usr/bin/g++ ] && alias g++='cl g++'
-		[ -x /usr/bin/as ] && alias as='cl as'
-		[ -x /usr/bin/dig ] && alias dig='cl dig'
-		[ -x /bin/ifconfig ] && alias ifconfig='cl ifconfig'
-		[ -x /usr/bin/gas ] && alias gas='cl gas'
-		[ -x /usr/bin/ld ] && alias ld='cl ld'
-		[ -x /bin/netstat ] && alias netstat='cl netstat'
-		[ -x /usr/bin/traceroute ] && alias traceroute='cl traceroute'
-		[ -x /usr/bin/last ] && alias last='cl last'
-		[ -x /bin/mount ] && alias mount='cl mount'
-		[ -x /usr/bin/nmap ] && alias nmap='cl nmap'
-		[ -x /usr/bin/stat ] && alias stat='cl stat'
-		[ -x /bin/findmnt ] && alias findmnt='cl findmnt'
-		[ -x /bin/df ] && alias df='cl df -h'
-		[ -x /usr/bin/du ] && alias du='cl du -sh'
-		[ -x /bin/ip ] && alias ip='cl ip'
-		[ -x /bin/lsblk ] && alias lsblk='cl lsblk'
-		[ -x /usr/bin/lsof ] && alias lsof='cl lsof'
-		[ -x /usr/bin/id ] && alias id='cl id'
-		[ -x /bin/lsmod ] && alias lsmod='cl lsmod'
-		[ -x /usr/bin/vmstat ] && alias vmstat='cl vmstat'
-		[ -x /usr/bin/uptime ] && alias uptime='cl uptime'
-		[ -x /usr/sbin/lspci ] && alias lspci='cl lspci'
-		[ -x /sbin/ss ] && alias ss='cl ss'
-		[ -x /usr/bin/free ] && alias free='cl free -h'
-	}
-
-	[ -x /usr/bin/tailf ] || alias tailf="tail -f"
-	[ -x /usr/bin/euses ] && alias euses='/usr/bin/euses -cv'
-	[ -x /usr/bin/wget ] && alias wget='wget -c'
-	[ -x /usr/bin/htop ] && {
-		alias oldtop='/usr/bin/top'
-		alias top='htop'
-	}
-	[ -x /usr/bin/gio ] && alias cdgvfs='cd /run/user/${UID}/gvfs'
-	[ -x /usr/bin/ncdu ] && alias ncdu='ncdu --color=dark'
+		alias as='cl as'
+		alias ip='cl ip'
+		alias df='cl df -h'
+		alias du='cl du -sh'
+		alias free='cl free -h'
+		alias w='cl w -i'
+	fi
 fi
 
 ## Включить программируемое атозаполнение

@@ -491,13 +491,13 @@ chmog() {
 }
 
 # thanks for: https://github.com/michaeltd/dots
-allemojis() {
-	for (( x = 2600; x <= 2700; x++ )); do
-		echo -n -e " \u${x}"
-		sleep .1
-	done
-	echo
-}
+# allemojis() {
+# 	for (( x = 2600; x <= 2700; x++ )); do
+# 		echo -n -e " \u${x}"
+# 		sleep .1
+# 	done
+# 	echo
+# }
 update-date() { sudo ntpdate 0.gentoo.pool.ntp.org; }
 ping-subnet() {
 	# One liner:

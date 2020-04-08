@@ -4,46 +4,43 @@
 [ -x /usr/bin/percol ] && alias pcol='/usr/bin/percol'
 
 ## Запускаем xfce с поддержкой polkit
-[ -x /usr/bin/startxfce4 ] && { 
-	alias startx='/usr/bin/startxfce4 --with-ck-launch'
-	alias startxfce4='/usr/bin/startxfce4 --with-ck-launch' 
-}
+# [ -x /usr/bin/startxfce4 ] && {
+# 	alias startx='/usr/bin/startxfce4 --with-ck-launch'
+# 	alias startxfce4='/usr/bin/startxfce4 --with-ck-launch'
+# }
 
 ## Команда — clear
 alias c='clear'
-
-## Команда — pw
 alias p='pwd'
-
-# Команда к хелперу pcopy()
 alias pc='pcopy'
 alias pwdc='pcopy'
-
-## Команда — cat
-[ -x /usr/bin/ccat ] && alias cat='ccat'
-
-## Упрощение основных программ мониторинга
 alias wdu='watch -n 1 du -sh'
 alias wfree='watch -n 1 free'
 alias wdf='watch -n 1 "df -h"'
+alias lsusb='watch -n 1 lsusb'
+alias cal='cal -Ym'
+alias ifind_here="find ./ -type f -iname"
+alias clfile='cat /dev/null >'
+alias mapscii='telnet mapscii.me'
+alias myip='myip4'
+alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
+[ -x /usr/bin/ccat ] && alias cat='ccat'
+[ -x /usr/bin/vim ] && alias vimlast='vim $(ls -t | head -1)'
+[ -x /usr/bin/pwndbg ] && alias pwndbg='pwndbg -ex init-pwndbg'
+[ -x /usr/bin/tailf ] || alias tailf="tail -f"
+[ -x /usr/bin/euses ] && alias euses='/usr/bin/euses -cv'
+[ -x /usr/bin/wget ] && alias wget='wget -c'
+[ -x /usr/bin/ncdu ] && alias ncdu='ncdu --color=dark'
 [ -x /opt/bin/yandex-disk ] && alias wyadisk='watch -n1 yandex-disk status'
 [ -x /usr/bin/sensors ] && alias sensors='watch -n 1 sensors'
 [ -x /usr/bin/youtube-dl ] && {
 	alias youtF="youtube-dl -F"
 	alias youtf="youtube-dl -f"
 }
-
-alias w="w -i"
-alias lsusb='watch -n 1 lsusb'
-alias cal='cal -Ym'
-alias ifind_here="find ./ -type f -iname"
-alias pbin='nc pastebin.linxon.ru 9999 | xclip -selection "clipboard" && notify-send --urgency=low -i "$([ $? = 0 ] && echo text-x-script)" "Сервер: pastebin.linxon.ru" "Ссылка была скопирована в буфер обмена..."'
-alias clfile='cat /dev/null >'
-alias mapscii='telnet mapscii.me'
-[ -x /usr/bin/vim ] && alias vimlast='vim $(ls -t | head -1)'
-[ -x /usr/bin/pwndbg ] && alias pwndbg='pwndbg -ex init-pwndbg'
-alias myip='myip4'
-alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
+[ -x /usr/bin/htop ] && {
+	alias oldtop='/usr/bin/top'
+	alias top='htop'
+}
 
 # thanks for https://github.com/michaeltd/dots
 alias fixnet='ping -c 1 www.gentoo.org||sudo rc-service dhcpcd restart'
@@ -64,6 +61,9 @@ alias fixnet='ping -c 1 www.gentoo.org||sudo rc-service dhcpcd restart'
 [ -d "${XDG_MUSIC_DIR}" ] && alias cdM='cd -P ${XDG_MUSIC_DIR}'
 [ -d "${XDG_PICTURES_DIR}" ] && alias cdPic='cd -P ${XDG_PICTURES_DIR}'
 [ -d "${XDG_VIDEOS_DIR}" ] && alias cdVid='cd -P ${XDG_VIDEOS_DIR}'
+if [ -x /usr/bin/gio ] || [ -d /run/user/${UID}/gvfs ]; then
+	alias cdgvfs='cd /run/user/${UID}/gvfs'
+fi
 
 [ -x /usr/bin/ebuildtester ] && alias ebuildtester='ebuildtester \
 	--threads $(($(nproc)+1)) \
