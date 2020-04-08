@@ -69,6 +69,22 @@ if [ "$TERM" != dumb ]; then
 	BWHT="\[\033[47m\]" # background white
 fi
 
+if [ -n "$DISPLAY" ] && [ "$TERM" != dumb ] && [ -f ~/.config/user-dirs.dirs ]; then
+	source ~/.config/user-dirs.dirs
+fi
+
+if [ "$TERM" != dumb ] && [ -f ~/.bash_env ]; then
+	source ~/.bash_env
+fi
+
+if [ "$TERM" != dumb ] && [ -f ~/.bash_helpers ]; then
+	source ~/.bash_helpers
+fi
+
+if [ "$TERM" != dumb ] && [ -f ~/.bash_aliases ]; then
+	source ~/.bash_aliases
+fi
+
 ## Раскоментировать, для принудительной поддержки цветовой схемы в терминале (если не сработает)
 #force_color_prompt=yes
 
@@ -236,25 +252,6 @@ if [ "$TERM" != dumb ]; then
 	[ -x /usr/bin/ncdu ] && alias ncdu='ncdu --color=dark'
 fi
 
-## Упрощаем работу с tripwire (требуется привелегии root)
-if [[  "$TERM" != dumb && -x /usr/sbin/tripwire && -d /var/lib/tripwire/report && ${IS_ROOT} ]]; then
-	alias last.tw.report='echo $(ls -t /var/lib/tripwire/report/* | head -1)'
-	alias tw.report='twprint  --print-report -r `last.tw.report`'
-	alias tw.update='tripwire --update -r `last.tw.report`'
-fi
-
-if [ "$TERM" != dumb ] && [ -f ~/.bash_env ]; then
-	source ~/.bash_env
-fi
-
-if [ "$TERM" != dumb ] && [ -f ~/.bash_helpers ]; then
-	source ~/.bash_helpers
-fi
-
-if [ "$TERM" != dumb ] && [ -f ~/.bash_aliases ]; then
-	source ~/.bash_aliases
-fi
-
 ## Включить программируемое атозаполнение
 if ! shopt -oq posix; then
 	if [ -f /usr/share/bash-completion/bash_completion ]; then
@@ -305,6 +302,13 @@ fi
 
 if [ -f /usr/libexec/mc/mc.sh ]; then
 	source /usr/libexec/mc/mc.sh
+fi
+
+## Упрощаем работу с tripwire (требуется привелегии root)
+if [[  "$TERM" != dumb && -x /usr/sbin/tripwire && -d /var/lib/tripwire/report && ${IS_ROOT} ]]; then
+	alias last.tw.report='echo $(ls -t /var/lib/tripwire/report/* | head -1)'
+	alias tw.report='twprint  --print-report -r `last.tw.report`'
+	alias tw.update='tripwire --update -r `last.tw.report`'
 fi
 
 if [ -x /usr/bin/eix ]; then

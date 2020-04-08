@@ -41,7 +41,9 @@ alias pbin='nc pastebin.linxon.ru 9999 | xclip -selection "clipboard" && notify-
 alias clfile='cat /dev/null >'
 alias mapscii='telnet mapscii.me'
 [ -x /usr/bin/vim ] && alias vimlast='vim $(ls -t | head -1)'
+[ -x /usr/bin/pwndbg ] && alias pwndbg='pwndbg -ex init-pwndbg'
 alias myip='myip4'
+alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 
 # thanks for https://github.com/michaeltd/dots
 alias fixnet='ping -c 1 www.gentoo.org||sudo rc-service dhcpcd restart'
@@ -52,14 +54,17 @@ alias fixnet='ping -c 1 www.gentoo.org||sudo rc-service dhcpcd restart'
 	alias glg='git log --graph --pretty="%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
 }
 
-[ -x /usr/bin/pwndbg ] && alias pwndbg='pwndbg -ex init-pwndbg'
-
-alias cdw='cd -P /tmp/linxon-tmp-files'
-alias cdg='cd -P ~/GitClones'
-alias cdcloud='cd -P /media/Xlam/Cloud/'
-alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 [ -d "/run/media/${USER}" ] && alias cdm='cd /run/media/${USER}'
-[ -d "/etc/portage" ] && alias cdp='cd /etc/portage'
+[ -d '/etc/portage' ] && alias cdp='cd /etc/portage'
+[ -d '/tmp/linxon-tmp-files' ] && alias cdW='cd /tmp/linxon-tmp-files'
+[ -d "${HOME}/GitClones" ] && alias cdG='cd -P ~/GitClones'
+[ -d "${HOME}/Cloud" ] && alias cdCloud='cd -P ~/Cloud'
+[ -d "${XDG_DOCUMENTS_DIR}" ] && alias cdDoc='cd -P ${XDG_DOCUMENTS_DIR}'
+[ -d "${XDG_DOWNLOAD_DIR}" ] && alias cdDw='cd -P ${XDG_DOWNLOAD_DIR}'
+[ -d "${XDG_MUSIC_DIR}" ] && alias cdM='cd -P ${XDG_MUSIC_DIR}'
+[ -d "${XDG_PICTURES_DIR}" ] && alias cdPic='cd -P ${XDG_PICTURES_DIR}'
+[ -d "${XDG_VIDEOS_DIR}" ] && alias cdVid='cd -P ${XDG_VIDEOS_DIR}'
+
 [ -x /usr/bin/ebuildtester ] && alias ebuildtester='ebuildtester \
 	--threads $(($(nproc)+1)) \
 	--portage-dir $(portageq get_repo_path / gentoo) \
