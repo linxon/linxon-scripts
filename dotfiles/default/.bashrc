@@ -166,6 +166,8 @@ if [ "$TERM" != dumb ]; then
 	alias lu='ls -luh'
 	alias li='ls -lih'
 	alias llr='ls -lhR'
+	alias lsq='ls -Q'
+	alias llq='ls -lhQ'
 	alias hh='history'
 
 	[ -x /usr/bin/equery ] && {
