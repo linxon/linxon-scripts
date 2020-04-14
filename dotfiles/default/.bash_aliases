@@ -42,6 +42,10 @@ alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 	alias top='htop'
 }
 
+[ -x /usr/bin/docker ] && alias d='docker'
+[ -x /usr/bin/kubectl ] && alias k='kubectl'
+[ -x /usr/bin/minikube ] && alias m='minikube'
+
 # thanks for https://github.com/michaeltd/dots
 alias fixnet='ping -c 1 www.gentoo.org||sudo rc-service dhcpcd restart'
 [ -x /usr/bin/git ] && {
