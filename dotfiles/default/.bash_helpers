@@ -336,8 +336,12 @@ rmsecure_here() {
 conv2mp3() {
 	if [ -x /usr/bin/ffmpeg ]; then
 		for filepath in "$@"; do
-			if [[ -f "$filepath" ]]; then
-				ffmpeg -i "$filepath" -f mp3 -ab 320000 -vn -- "${filepath%.*}.mp3"
+			if [[ -f "${filepath}" ]]; then
+				ffmpeg -i "${filepath}" -f mp3 -ab 320000 -vn -- "${filepath%.*}.mp3" && {
+					if YESNO_ASK_MSG='Удалить исходный файл?' yesno_ask; then
+						rm -f -- "${filepath}"
+					fi
+				}
 			else
 				echo "Ошибка: Необходимо путь к *.mp4"
 			fi
