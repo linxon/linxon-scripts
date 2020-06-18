@@ -1,0 +1,5 @@
+#!/bin/sh
+
+/usr/bin/eclean-pkg -dn
+/usr/bin/eclean-dist -d
+
