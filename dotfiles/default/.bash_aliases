@@ -73,6 +73,12 @@ fi
 	--threads $(($(nproc)+1)) \
 	--portage-dir $(portageq get_repo_path / gentoo) \
 	--ccache-dir $(portageq envvar CCACHE_DIR) \
+	--shell-env "CCACHE_UMASK=$(portageq envvar CCACHE_UMASK)" \
+	--shell-env "CCACHE_MAXSIZE=$(portageq envvar CCACHE_MAXSIZE)" \
+	--shell-env "CCACHE_NLEVELS=$(portageq envvar CCACHE_NLEVELS)" \
+	--shell-env "CCACHE_COMPILERCHECK=$(portageq envvar CCACHE_COMPILERCHECK)" \
+	--shell-env "CCACHE_COMPRESS=$(portageq envvar CCACHE_COMPRESS)" \
+	--shell-env "CCACHE_COMPRESSLEVEL=$(portageq envvar CCACHE_COMPRESSLEVEL)" \
 	--shell-env "CFLAGS=$(portageq envvar CFLAGS)" \
 	--shell-env "CXXFLAGS=$(portageq envvar CXXFLAGS)" \
 	--shell-env "FCFLAGS=$(portageq envvar FCFLAGS)" \
