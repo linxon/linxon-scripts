@@ -79,6 +79,7 @@ fi
 	--shell-env "CCACHE_COMPILERCHECK=$(portageq envvar CCACHE_COMPILERCHECK)" \
 	--shell-env "CCACHE_COMPRESS=$(portageq envvar CCACHE_COMPRESS)" \
 	--shell-env "CCACHE_COMPRESSLEVEL=$(portageq envvar CCACHE_COMPRESSLEVEL)" \
+	--shell-env "PORTAGE_TMPDIR=$(portageq envvar PORTAGE_TMPDIR)" \
 	--shell-env "CFLAGS=$(portageq envvar CFLAGS)" \
 	--shell-env "CXXFLAGS=$(portageq envvar CXXFLAGS)" \
 	--shell-env "FCFLAGS=$(portageq envvar FCFLAGS)" \
