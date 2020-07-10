@@ -191,7 +191,7 @@ logger() {
 	printf " *\n"
 
 	ebegin "Sync repos"
-	# sync_repos
+	sync_repos
 	eend $? $(
 		if is_stat $_EXIT_STATUS_NEWS_AVAIL; then
 			echo "Skip"
