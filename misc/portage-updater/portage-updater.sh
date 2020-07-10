@@ -118,6 +118,7 @@ post_update() {
 
 update_pkgs() {
 	local max_prbcnt=3
+	local em_status
 
 	pre_update || return 1
 
@@ -127,15 +128,16 @@ update_pkgs() {
 		echo ">>> ${FUNCNAME[0]}: emerge attempt $i (of $max_prbcnt)"
 
 		eval $_EMERGE_CMD --changed-use --changed-deps --deep --update @world
+		em_status=$?
 
-		if (( $? > 0 )); then
+		if (( $em_status > 0 )); then
 			/usr/sbin/etc-update --verbose --automode -5 2>&1
 		else
 			break
 		fi
 	done
 
-	(( $? == 0 )) && post_update
+	(( $em_status == 0 )) && post_update
 }
 
 ebegin() {
