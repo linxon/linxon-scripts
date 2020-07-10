@@ -1,0 +1,15 @@
+diff -ur /tmp/portage/xfce-extra/xfce4-clipman-plugin-1.6.1/work/xfce4-clipman-plugin-1.6.1/panel-plugin/menu.c b/panel-plugin/menu.c
+--- /tmp/portage/xfce-extra/xfce4-clipman-plugin-1.6.1/work/xfce4-clipman-plugin-1.6.1/panel-plugin/menu.c	2020-03-30 00:08:02.000000000 +0300
++++ b/panel-plugin/menu.c	2020-07-09 13:09:20.051416092 +0300
+@@ -544,9 +544,11 @@
+   gtk_menu_shell_append (GTK_MENU_SHELL (menu), mi);
+   g_signal_connect_swapped (mi, "activate", G_CALLBACK (cb_clear_history), menu);
+ 
++/*
+   mi = gtk_menu_item_new_with_mnemonic (_("_Clipman settings..."));
+   gtk_menu_shell_append (GTK_MENU_SHELL (menu), mi);
+   g_signal_connect_swapped (mi, "activate", G_CALLBACK (cb_launch_clipman_bin), mi);
++*/
+ 
+   /* Show all the items */
+   gtk_widget_show_all (GTK_WIDGET (menu));
