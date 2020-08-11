@@ -24,8 +24,11 @@ _arch="+(*.[zZ][iI][pP]|*.[rR][aA][rR]|*.[tT][aA][rR]|*.?(7)[zZ]|*.[gG][zZ]|*.[x
 _webdocs="+(*.?([xX]|[mM]|[iI]|[pP]|[sS])[hH][tT][mM]?([lL])?([0-9])|*.+([mM]|[xX])[hH][tT]|*.?([sS])[cC][sS][sS]?([0-9])|*.[jJ][sS]|*.[pP][hH][pP]?([0-9])|*.[tT][pP][lL]|*.[cC][gG][iI]|*.[aA][sS][pP]?([xX])|*.[bB][mM][lL]|*.[cC][fF][mM]|*.[jJ][sS][pP]|*.[pP][lL]|*.[xX][mM][lL]|*.[sS][gG][mM][lL])"
 #_execs="+(*.[sS][hH]|*.[eE][xX][eE]|*.[dD][lL][lL]|*.[sS][oO]|*.[kK][oO])"
 
-alias @is_ip='grep -E "^[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}\.[0-9]{0,3}$"'
+alias @is_ip='grep -E "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}"'
 alias @eix_in_overlay='grep -E "^(\*|\[(I|U)\]) [0-9a-zA-Z-]{1,}\/[0-9a-zA-Z_-]{1,} \[[0-9]{1,}\]$"'
+
+# ~$ emerge -pv1 app-admin/ansible 2> /dev/null | @emerge_apps | while read -r i; do sudo quickpkg --include-config=y $i; done
+alias @emerge_apps="sed -e 's|^\[.*\][[:blank:]]\(.*\/.*\)::.*|=\1|g' | grep '.*/.*'"
 
 ####################################################################
 # Остальные полезные функции (велосипеды ^^)
@@ -97,7 +100,7 @@ mkcdr () { mkdir -p "$1" && cd "$1"; }
 
 json-view () { python -m json.tool "$@"; }
 download-site () { wget --random-wait -r -p -e robots=off -U mozilla $1; }
-share-this-folder () { python -m SimpleHTTPServer; }
+share-this-folder () { python -m http.server 8000; }
 
 # Конвентировать кодировку из Win-1251 в UTF-8
 # convwin1251toutf8 () {
