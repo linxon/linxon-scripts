@@ -16,6 +16,7 @@ export EMERGE_DEFAULT_OPTS+=(
 	--nospinner
 	--keep-going=y
 	--fail-clean=n
+	--verbose-conflicts
 	#--autounmask=y
 	#--autounmask-continue=y
 	#--autounmask-write=y
@@ -59,6 +60,7 @@ _EXIT_STATUS_POST_UPD_CLEANUP_FAILS=32
 _EXIT_STATUS_POST_UPD_REBUILD_FAILS=33
 _EXIT_STATUS_BACKUP_CREATE_ERR=40
 _EXIT_STATUS_BACKUP_RESTORE_ERR=41
+_EXIT_STATUS_PATCH_ERR=50
 
 _show_help() {
 	echo "Usage: $_BNAME [OPTION]..."
@@ -69,7 +71,7 @@ _show_help() {
 	echo "	-q              quiet; do not write anything to standard output"
 	echo "	-n              ignore news checking before updating"
 	echo "	-c              cleanup after updating"
-	echo "  -b              create a backup '/etc/portage'"
+	echo "	-b              create a backup '/etc/portage'"
 	exit 1
 }
 
@@ -108,6 +110,12 @@ eerror() {
 			printf "Pre update fails. Abort";;
 		$_EXIT_STATUS_POST_UPDATE_FAILS)
 			printf "Post update fails. Abort";;
+		$_EXIT_STATUS_BACKUP_CREATE_ERR)
+			printf "Fail to create backup. Abort";;
+		$_EXIT_STATUS_BACKUP_RESTORE_ERR)
+			printf "Fail to restore the current backup. Abort";;
+		$_EXIT_STATUS_PATCH_ERR)
+			printf "Errors while applying patches. Abort";;
 		*) printf "${err_message}";;
 	esac
 	printf " ...\n"
@@ -170,10 +178,10 @@ sync_repos() {
 	if [ -x /usr/bin/eix-diff ]; then
 		_EIX_IS_AVAIL=1
 		/usr/bin/eix-update --quiet > /dev/null 2>&1 && \
-		/usr/bin/eix-diff --force-color 2>&1 # || return 1
+		/usr/bin/eix-diff --force-color 2> /dev/null # || return 1
 	fi
 
-	if [ -n $_IGNORE_CHECKING_NEWS ]; then
+	if ! (( $_IGNORE_CHECKING_NEWS )); then
 		local news_file="/var/lib/gentoo/news/news-gentoo.unread"
 		[ -f "$news_file" ] || return
 		if (( $(wc -l "$news_file" | cut -c1) > 0 )); then
@@ -184,12 +192,12 @@ sync_repos() {
 }
 
 _backup_config() {
-	(( $_BACKUP )) || return
+	(( $_BACKUP )) || return 0
 
 	einfo "create a backup for '/etc/portage'"
 
-	mkdir -p "$(dirname "${_BACKUP_FILE}")" && \
-	/bin/tar -cvJp --absolute-names --xattrs \
+	mkdir -p "$(dirname -- "${_BACKUP_FILE}")" && \
+	/bin/tar -cvJp --xattrs \
 		-f "${_BACKUP_FILE}" '/etc/portage' 2> /dev/null
 
 	if (( $? )); then
@@ -199,31 +207,45 @@ _backup_config() {
 }
 
 _restore_curr_backup() {
-	(( $_BACKUP )) || return
+	(( $_BACKUP )) || return 0
+
+	local tmp_d="$(mktemp -d)"
 
 	if _is_stat $_EXIT_STATUS_BACKUP_CREATE_ERR; then
 		return 1
 	fi
 
 	einfo "restore configurations in '/etc/portage' from last backup"
-	/bin/tar -xvJp --skip-old-files --absolute-names --xattrs \
-		-f "${_BACKUP_FILE}" -C '/etc/portage' 2> /dev/null
+
+	/bin/tar -xJp --xattrs -f "${_BACKUP_FILE}" \
+		-C "${tmp_d}" 2> /dev/null && \
+		/usr/bin/rsync -aqzP --delete "${tmp_d}/etc/portage/" '/etc/portage/' 2>&1
 
 	if (( $? )); then
 		_EXIT_STATUS=$_EXIT_STATUS_BACKUP_RESTORE_ERR
 		return 1
 	else
-		[ -f "${_BACKUP_FILE}" ] && rm -fv "${_BACKUP_FILE}"
+		if [ -d "${tmp_d}/etc/portage/" ]; then
+			rm -fr "${tmp_d}" 2>&1 || return 1
+			[ -f "${_BACKUP_FILE}" ] && rm -f "${_BACKUP_FILE}" 2>&1
+		else
+			_EXIT_STATUS=$_EXIT_STATUS_BACKUP_RESTORE_ERR
+			return 1
+		fi
 	fi
 }
 
 _apply_patches() {
+	if ! [ -d "$_DIR_OF_PATCHES" ]; then
+		return
+	fi
+
 	einfo "applying patches from '$_DIR_OF_PATCHES'"
 
-	pushd '/etc/portage' >/dev/null
+	pushd '/etc/portage' > /dev/null
 	/usr/bin/find "$_DIR_OF_PATCHES" -maxdepth 1 \
 		-iname '*.patch' -iname '*.diff' \
-		-print | while read -r p; do
+		-print 2> /dev/null | while read -r p; do
 			/usr/bin/patch -p1 < "$p" 2>&1
 			if (( $? )); then
 				_EXIT_STATUS=$_EXIT_STATUS_PATCH_ERR
@@ -292,7 +314,7 @@ update_pkgs() {
 	for i in $(seq 1 $max_prbcnt); do
 		einfo "emerge attempt $i (of $max_prbcnt)"
 
-		eval $_EMERGE_CMD --changed-use --changed-deps --deep --update @world
+		eval $_EMERGE_CMD --changed-{use,deps} --newuse --deep --update @world
 		em_status=$?
 
 		if (( $em_status && $i != $max_prbcnt )); then
@@ -343,7 +365,7 @@ send_report() {
 ################################################
 ################################################
 
-while getopts "bcnhql:p:" opt; do
+while getopts 'bcnhql:p:' opt; do
 	case "${opt}" in
 		b) _BACKUP=1;;
 		c) _CLEANUP=1;;
@@ -405,4 +427,4 @@ done; shift $((OPTIND -1))
 	printf "=== Update completed! Exit status: %d ===\n" $_EXIT_STATUS
 } | logger
 
-exit $(($?+$_EXIT_STATUS))
+exit $?
