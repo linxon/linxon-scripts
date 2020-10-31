@@ -170,14 +170,6 @@ if [ "$TERM" != dumb ]; then
 	alias llq='ls -lhQ'
 	alias hh='history'
 
-	[ -x /usr/bin/equery ] && {
-		source <(
-			for cmd in {f,u,h,a,b,l,d,g,c,k,m,s,w}; do
-				echo "alias eq${cmd}='/usr/bin/equery ${cmd}'"
-			done
-		)
-	}
-
 	if [ -x /usr/bin/grc ]; then
 		: ${GRC_CONF_EXCLUDE:="sql jobs ulimit ls make"}
 		if [ -f "${HOME}/.grc.bashrc" ]; then

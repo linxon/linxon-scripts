@@ -45,6 +45,7 @@ alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 [[ -x /usr/bin/docker && ! $(type -t d) =~ ^(alias|file) ]] && alias d='docker'
 [[ -x /usr/bin/kubectl && ! $(type -t k) =~ ^(alias|file) ]] && alias k='kubectl'
 [[ -x /usr/bin/minikube && ! $(type -t m) =~ ^(alias|file) ]] && alias m='minikube'
+[[ -x /usr/bin/podman && ! $(type -t pod) =~ ^(alias|file) ]] && alias pod='podman'
 
 [ -x /usr/bin/git ] && {
 	alias gst='git status'
