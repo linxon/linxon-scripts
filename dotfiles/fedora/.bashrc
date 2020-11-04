@@ -62,72 +62,6 @@ if [ "$TERM" != dumb ]; then
 	BWHT="\[\033[47m\]" # background white
 fi
 
-## Раскоментировать, для принудительной поддержки цветовой схемы в терминале (если не сработает)
-#force_color_prompt=yes
-
-if [ -n "$force_color_prompt" ]; then
-	if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-		# We have color support; assume it's compliant with Ecma-48
-		# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-		# a case would tend to support setf rather than setaf.)
-		color_prompt=yes
-	else
-		color_prompt=
-	fi
-fi
-
-if [ "$color_prompt" = yes ]; then
-	PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
-else
-	##$HC$FGRN•
-	if [ "${USER}" == 'root' ]; then
-		PS1="$RS\[\e]0;\u@\h:[ \W ]\a\]$HC$FRED\h$RS$HC$FBLE:$HC$FYEL\w $FRED\\$ $RS"
-	else
-		if ! [ -z "${SSH_CLIENT}" ]; then
-			## Режим сервера
-			PS1="$RS\[\e]0;\u@\h:[ \W ]\a\]$HC$FBLE$UL\u$RS$HC$FBLE@$FGRN\h$RS$HC$FBLE: $HC$FYEL\w $FRED\\$ $RS"
-		elif [[ "${TERM,,}" == 'xterm' ]]; then
-			## Пользовательский режим (xterm) (•­ — обозначает ПР)
-			PS1="$RS\[\e]0;\u@\h:[ \W ]\a\]$HC$FBLE$UL\u$RS$HC$FBLE@\h$RS$HC$FBLE:$HC$FYEL\w $FRED\\$ $RS"
-		elif [[ "${TERM,,}" == 'linux' ]]; then
-			## Пользовательский режим (tty*) (•­ — обозначает ПР)
-			PS1="$RS\[\e]0;\u@\h:[ \W ]\a\]$HC­$FBLE$UL\u$RS$HC$FBLE@\h$RS$HC$FBLE:$HC$FYEL\W $FRED\\$ $RS"
-		fi
-	fi
-	PS2="$FMAG>>> $RS"
-fi
-unset color_prompt force_color_prompt
-
-## Автоматический заупуск оболочки XFCE после авторизации в tty* (Зачем нам нужны всякие slim или lightdm?)
-# if [ "${TERM}" != dumb ] && [[ -x /usr/bin/startxfce4 && "${IS_ROOT}" != "1" ]]; then
-# 	if [[ $(tty) == "/dev/tty1" && ! ${DISPLAY} ]]; then
-# 		C_COUNT=0
-# 		M_COUNT=3
-# 		CANCEL_STAT=0
-
-# 		echo -e "\033[32mЗапуск команды: \033[4m/usr/bin/startxfce4 --with-ck-launch\033[0m\033[32m"
-# 		echo -en "\033[32mНажмите Ctrl+C для отмены\033[31m"
-
-# 		trap 'CANCEL_STAT=1' SIGINT
-
-# 		while true; do
-# 			[ ${CANCEL_STAT} -eq 1 ] && {
-# 				echo -e "\n"
-# 				break
-# 			}
-# 			if [[ ${C_COUNT} != ${M_COUNT} ]]; then
-# 				sleep 1 && echo -n "."
-# 				C_COUNT=$(($C_COUNT + 1))
-# 			else
-# 				echo -en "\033[0m" && sleep 1
-# 				/usr/bin/startxfce4 --with-ck-launch > /dev/null 2>&1 &
-
-# 				break
-# 			fi
-# 		done
-# 	fi
-# fi
-
 if [ "$TERM" != dumb ]; then
 	[ -f ~/.config/user-dirs.dirs ] && source ~/.config/user-dirs.dirs
 	[ -f ~/.bash_env ] && source ~/.bash_env
@@ -199,25 +133,11 @@ if [ "$TERM" != dumb ]; then
 	fi
 fi
 
-## Включить программируемое атозаполнение
-if ! shopt -oq posix; then
-	if [ -f /usr/share/bash-completion/bash_completion ]; then
-		source /usr/share/bash-completion/bash_completion
-	elif [ -f /etc/bash_completion ]; then
-		source /etc/bash_completion
-	fi
-fi
-
 ###########################
 ## Прочее...
 ###########################
 ## PHPBREW Requirement
 #[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
-
-## distcc - рабочий каталог (необходим для компиляции пользователем)
-if [ -x /usr/bin/distccd ]; then
-	[ -d /var/tmp/portage/.distcc ] && export DISTCC_DIR="/var/tmp/portage/.distcc/"
-fi
 
 ## Локальные файлы пользователи для запуска
 LOC_BIN_PATH="${HOME}/.local/bin"
@@ -234,18 +154,6 @@ fi
 # else
 # 	mkdir -p "${MANDIR_PATH}" && export MANPATH="${MANPATH}:${MANDIR_PATH}"
 # fi
-
-## Поддержка переключения сторонних языков (напр. Японский)
-#if [ -x /usr/bin/ibus ] && [ "${TERM,,}" == 'xterm' ]; then 
-#	export GTK_IM_MODULE=ibus
-#	export XMODIFIERS=@im=ibus
-#	export QT_IM_MODULES=ibus
-#fi
-
-if [ -n "$DISPLAY" ]; then
-	xset b off # disable pc-speaker
-	xset s off && xset -dpms # disable turnoff screen
-fi
 
 if [ -f /usr/libexec/mc/mc.sh ]; then
 	source /usr/libexec/mc/mc.sh
@@ -265,20 +173,4 @@ fi
 if [[ -x /usr/bin/stow && $IS_ROOT -ne 1 ]]; then
 	export STOW_DIR="${STOW_DIR:-${HOME}/.local/stow}"
 	[ -d "${STOW_DIR}" ] || mkdir -p "${STOW_DIR}"
-fi
-
-if [[ -x /usr/bin/hstr && $IS_ROOT -ne 1 ]]; then
-	# HSTR configuration - add this to ~/.bashrc
-	alias hh=hstr                    # hh to be alias for hstr
-	export HSTR_CONFIG=hicolor       # get more colors
-	shopt -s histappend              # append new history items to .bash_history
-	export HISTCONTROL=ignorespace   # leading space hides commands from history
-	export HISTFILESIZE=10000        # increase history file size (default is 500)
-	export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
-	# ensure synchronization between Bash memory and history file
-	export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
-	# if this is interactive shell, then bind hstr to Ctrl-r (for Vi mode check doc)
-	if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr -- \C-j"'; fi
-	# if this is interactive shell, then bind 'kill last command' to Ctrl-x k
-	if [[ $- =~ .*i.* ]]; then bind '"\C-xk": "\C-a hstr -k \C-j"'; fi
 fi
