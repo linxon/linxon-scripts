@@ -67,3 +67,5 @@ alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 if [ -x /usr/bin/gio ] || [ -d /run/user/${UID}/gvfs ]; then
 	alias cdgvfs='cd /run/user/${UID}/gvfs'
 fi
+
+[ -x /usr/bin/prettyping ] && alias pping='prettyping'
