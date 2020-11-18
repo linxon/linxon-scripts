@@ -19,6 +19,7 @@ alias wfree='watch -n 1 free'
 alias wdf='watch -n 1 "df -h"'
 alias lsusb='watch -n 1 lsusb'
 alias cal='cal -Ym'
+alias man_sections='LC_ALL=C man -P "less -g +/^[A-Z].*"'
 alias ifind_here="find ./ -type f -iname"
 alias clfile='cat /dev/null >'
 alias mapscii='telnet mapscii.me'
