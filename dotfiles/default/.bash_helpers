@@ -232,10 +232,10 @@ share-this-folder () { python -m http.server 8000; }
 pcopy() {
 	[ -x /usr/bin/xclip ] && {
 		if [[ -d "$1" || -f "$1" ]]; then
-			echo "$(readlink -f "$1")" && echo -n $(readlink -f "$1") | xclip -selection "clipboard"
+			echo "$(readlink -f "$1")" && echo -n "$(readlink -f "$1")" | xclip -selection "clipboard"
 			[ -x /usr/bin/notify-send ] && notify-send --urgency=low -i "$([ $? = 0 ] && echo xfce4-clipman-plugin)" "Скопирован в буфер обмена как:" $(readlink -f "$1")
 		else
-			echo "$(pwd)" && echo -n $(pwd) | xclip -selection "clipboard"
+			echo "$(pwd)" && echo -n "$(pwd)" | xclip -selection "clipboard"
 			[ -x /usr/bin/notify-send ] && notify-send --urgency=low -i "$([ $? = 0 ] && echo xfce4-clipman-plugin)" "Скопирован в буфер обмена как:" $(pwd)
 		fi
 	} || echo "xClip package is required!"
@@ -445,7 +445,8 @@ update-containers() {
 		if [[ "$(file -i "${UPDATE_CONTAINERS_TARGET_DIR}"/${x} | cut -d' ' -f2)" == "application/octet-stream;" ]]; then
 			sha256sum "${UPDATE_CONTAINERS_TARGET_DIR}"/${x} >> "${tempfile}" || {
 				echo "Ошибка во время генерации хешсумм для ${x}"
-				exit 1
+				rm -f "${tempfile}"
+				return 1
 			}
 		fi
 	done
@@ -454,7 +455,8 @@ update-containers() {
 		if [ -d $(dirname ${x}) ]; then
 			cat "${tempfile}" > "${x}" || {
 				echo "Ошибка во время обновления файла ${x}"
-				exit 1
+				rm -f "${tempfile}"
+				return 1
 			}
 		fi
 	done && rm -f "${tempfile}"
