@@ -547,3 +547,14 @@ lynis-diff () {
 mvapaste() { curl -s http://paste.mva.name/ -H "Expect:" --data-binary "@${1--}"; }
 
 benchmarkit() { time sh -c 'echo "scale=5000; a(1)*4" | bc -l'; }
+
+vid2nosound() {
+	if [ -x /usr/bin/ffmpeg ]; then
+		mv -- "$1" "_$1"
+		ffmpeg -i "_$1" -an "$1"
+		echo "Удалить исходный файл?"
+		yesno_ask && rm -f -- "_$1"
+	else
+		echo "Для работы необходим ffmpeg последней версии..."
+	fi
+}
