@@ -73,3 +73,5 @@ fi
 [ -x /usr/bin/prettyping ] && alias pping='prettyping'
 
 [ -d "${ESP_IDF_PATH}" ] && alias esp_idf_enable='source ${ESP_IDF_PATH}/export.sh'
+
+[ -x /usr/bin/xdg-open ] && alias openit='xdg-open'
