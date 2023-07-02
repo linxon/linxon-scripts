@@ -55,7 +55,7 @@ alias cpuz='watch -n1 "cat /proc/cpuinfo | grep -e \"core id\" -e \"cpu MHz\""'
 	alias glg='git log --graph --pretty="%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
 }
 
-[ -d "/mnt/cache/${USER}" ] && alias cdC='cd /mnt/cache/${USER}'
+[ -d "/var/${USER}" ] && alias cdC='cd /var/${USER}'
 [ -d "/run/media/${USER}" ] && alias cdm='cd /run/media/${USER}'
 [ -d '/etc/portage' ] && alias cdp='cd /etc/portage'
 [ -d '/tmp/linxon-tmp-files' ] && alias cdW='cd /tmp/linxon-tmp-files'
