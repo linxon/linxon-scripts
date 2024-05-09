@@ -336,6 +336,14 @@ rmsecure_here() {
 	}
 }
 
+conv2t() {
+	ls -- *."${1}" | while read x; do
+		if [[ -f "$x" ]]; then
+			convert -- "$x" "${x%.*}.${2}" && rm -v -- "$x"
+		fi
+	done
+}
+
 conv2mp3() {
 	if [ -x /usr/bin/ffmpeg ]; then
 		for filepath in "$@"; do
