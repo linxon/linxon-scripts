@@ -1,11 +1,6 @@
 #!/bin/ash
 #######################
 
-FORCE_OVERWRITE="${FORCE_OVERWRITE:=0}"
-AUTOREMOVE="${AUTOREMOVE:=1}" # default ON
-REMOVE_DEPENDS="${REMOVE_DEPENDS:=1}" # default ON
-LOGGER_ENABLED="${LOGGER_ENABLED:=0}"
-
 LOGGER_DIR="/tmp/system-updater"
 LOGGER_FILE_PATH="${LOGGER_DIR}/$(basename ${0%%.sh})-$(date '+%Y-%m-%d').log"
 
@@ -13,6 +8,11 @@ PRIMARY_PKG_LIST="opkg luci"
 EXCLUDE_PKG_LIST="netifd kernel"
 
 #######################
+
+FORCE_OVERWRITE="${FORCE_OVERWRITE:=0}"
+AUTOREMOVE="${AUTOREMOVE:=1}" # default ON
+REMOVE_DEPENDS="${REMOVE_DEPENDS:=1}" # default ON
+LOGGER_ENABLED="${LOGGER_ENABLED:=0}"
 
 _LOGGER_TMP_MSG=
 _OPKG_UPGRADE_ARGS=
