@@ -1,17 +1,26 @@
 #!/bin/ash
 #######################
 
-PRIMARY_PKG_LIST="opkg luci"
-EXCLUDE_PKG_LIST="netifd kernel"
-OPKG_UPGRADE_ARGS="--autoremove --force-removal-of-dependent-packages" # --force-overwrite
-
+FORCE_OVERWRITE="${FORCE_OVERWRITE:=0}"
+AUTOREMOVE="${AUTOREMOVE:=1}" # default ON
+REMOVE_DEPENDS="${REMOVE_DEPENDS:=1}" # default ON
 LOGGER_ENABLED="${LOGGER_ENABLED:=0}"
+
 LOGGER_DIR="/tmp/system-updater"
 LOGGER_FILE_PATH="${LOGGER_DIR}/$(basename ${0%%.sh})-$(date '+%Y-%m-%d').log"
+
+PRIMARY_PKG_LIST="opkg luci"
+EXCLUDE_PKG_LIST="netifd kernel"
 
 #######################
 
 _LOGGER_TMP_MSG=
+_OPKG_UPGRADE_ARGS=
+
+#Create folders if not exist
+if [ ! -d "${LOGGER_DIR}" ]; then
+        mkdir -p "${LOGGER_DIR}" || exit 1
+fi
 
 _FLOCK_FILE="${LOGGER_DIR}/$(basename ${0%%.sh})".lock
 _FLOCK_FD=200
@@ -19,9 +28,19 @@ _FLOCK_FD=200
 #Create lock file
 eval "exec $_FLOCK_FD>$_FLOCK_FILE"
 
-#Create folder if not exist
-if [ ! -d "${LOGGER_DIR}" ]; then
-        mkdir -p "${LOGGER_DIR}" || exit 1
+#Enable force overwrite packages
+if [ ${FORCE_OVERWRITE} -ne 0 ]; then
+	_OPKG_UPGRADE_ARGS="${_OPKG_UPGRADE_ARGS} --force-overwrite"
+fi
+
+#Enable autoremove packages
+if [ ${AUTOREMOVE} -ne 0 ]; then
+	_OPKG_UPGRADE_ARGS="${_OPKG_UPGRADE_ARGS} --autoremove"
+fi
+
+#Enable remove depends
+if [ ${REMOVE_DEPENDS} -ne 0 ]; then
+	_OPKG_UPGRADE_ARGS="${_OPKG_UPGRADE_ARGS} --force-removal-of-dependent-packages"
 fi
 
 ebegin() {
@@ -79,14 +98,14 @@ cleanup() {
 
                 ebegin "Upgrade primary packages before"
                 for pkgname in $PRIMARY_PKG_LIST; do
-                        /bin/opkg upgrade $OPKG_UPGRADE_ARGS -- "${pkgname}" 2>&1
+                        /bin/opkg upgrade $_OPKG_UPGRADE_ARGS -- "${pkgname}" 2>&1
                 done
                 eend $? "Error while upgrading primary packages!"
 
                 ebegin "Update all available packages"
                 for pkgname in $(/bin/opkg list-upgradable | cut -d' ' -f1); do
                         echo $EXCLUDE_PKG_LIST | grep -q "${pkgname}" && continue
-                        /bin/opkg upgrade $OPKG_UPGRADE_ARGS -- "${pkgname}" 2>&1
+                        /bin/opkg upgrade $_OPKG_UPGRADE_ARGS -- "${pkgname}" 2>&1
                 done
                 eend $? "Error while upgrading packages!"
         else
