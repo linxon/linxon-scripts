@@ -26,7 +26,7 @@ _FLOCK_FILE="${LOGGER_DIR}/$(basename ${0%%.sh})".lock
 _FLOCK_FD=200
 
 #Create lock file
-eval "exec $_FLOCK_FD>$_FLOCK_FILE"
+eval "exec ${_FLOCK_FD}>${_FLOCK_FILE}"
 
 #Enable force overwrite packages
 if [ ${FORCE_OVERWRITE} -ne 0 ]; then
@@ -45,7 +45,7 @@ fi
 
 ebegin() {
         _LOGGER_TMP_MSG="${*}"
-        echo ">>> $_LOGGER_TMP_MSG ..."
+        echo ">>> ${_LOGGER_TMP_MSG} ..."
 }
 
 eend() {
@@ -53,10 +53,10 @@ eend() {
         local exit_code="$1"
 
         if [ $exit_code -gt 0 ]; then
-                [ -n "$err_message" ] && echo ">>> $_LOGGER_TMP_MSG / $err_message"
+                [ -n "$err_message" ] && echo ">>> ${_LOGGER_TMP_MSG} / $err_message"
                 exit $exit_code
         else
-                echo ">>> $_LOGGER_TMP_MSG / Done!"
+                echo ">>> ${_LOGGER_TMP_MSG} / Done!"
         fi
 
         _LOGGER_TMP_MSG=
@@ -82,7 +82,7 @@ logger() {
 
 cleanup() {
         #Remove lock file
-        [ -f "$_FLOCK_FILE" ] && rm -f "$_FLOCK_FILE" 2>&1 > /dev/null
+        [ -f "${_FLOCK_FILE}" ] && rm -f "${_FLOCK_FILE}" 2>&1 > /dev/null
 
         #Remove old log files
         find "${LOGGER_DIR}" -type f -name "$(basename ${0%%.sh})-*.log*" -mtime +30 -exec rm -- {} \;
