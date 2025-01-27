@@ -54,6 +54,8 @@ eend() {
 
         if [ $exit_code -gt 0 ]; then
                 [ -n "$err_message" ] && echo ">>> ${_LOGGER_TMP_MSG} / $err_message"
+
+                cleanup
                 exit $exit_code
         else
                 echo ">>> ${_LOGGER_TMP_MSG} / Done!"
