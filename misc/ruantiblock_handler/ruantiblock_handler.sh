@@ -3,6 +3,14 @@
 
 #######################
 
+_FLOCK_FILE="/var/lock/$(basename ${0%%.sh})".lock
+_FLOCK_FD=200
+
+eval "exec $_FLOCK_FD>$_FLOCK_FILE"
+
+trap quit EXIT
+trap force_quit SIGINT SIGTERM
+
 if [ ! -x /usr/bin/flock ]; then
 	echo "/usr/bin/flock is not found!"
 	exit 1
@@ -33,18 +41,11 @@ if [ ! -d /sys/class/leds/red:power ]; then
 	exit 1
 fi
 
-_FLOCK_FILE="/var/lock/$(basename ${0%%.sh})".lock
-_FLOCK_FD=200
-
-eval "exec $_FLOCK_FD>$_FLOCK_FILE"
-
 _led_timer_on() {
 	echo 'timer' > '/sys/class/leds/red:power/trigger'
-#	echo 'default-on' > '/sys/class/leds/white:status/trigger'
 }
 _led_timer_off() {
 	echo 'none' > '/sys/class/leds/red:power/trigger'
-#	echo 'default-on' > '/sys/class/leds/white:status/trigger'
 }
 _led_status() {
 	echo '50' > '/sys/class/leds/red:power/delay_on'
@@ -64,20 +65,15 @@ _button_ruantiblock_check() {
 				grep -E "\|mode" |
 				tr ' ' ':' |
 				cut -d ')' -f 2 |
-				cut -d ':' -f 4)" == "lo" ]]; then
-		return 0
+				cut -d ':' -f 4)" != "lo" ]]; then
+		return 1
 	fi
-
-	return 1
 }
 
 _is_enabled() {
-	# /etc/init.d/ruantiblock enabled
-	if [ -f /etc/rc.d/S99ruantiblock ]; then
-		return 0
+	if ! /etc/init.d/ruantiblock enabled; then
+		return 1
 	fi
-
-	return 1
 }
 
 _enable_depends() {
@@ -92,6 +88,10 @@ _disable_depends() {
 	/etc/init.d/sslocal stop && /etc/init.d/xray stop
 	/etc/init.d/sslocal disable
 	/etc/init.d/xray disable
+}
+
+_cleanup() {
+	[ -f "$_FLOCK_FILE" ] && rm -f "$_FLOCK_FILE" 2>&1 > /dev/null
 }
 
 enable_ruantiblock() {
@@ -142,7 +142,7 @@ check_restricted_host() {
 
 	local recieved_ip=
 	local vless_host_ip="$(cat /etc/xray/config.json | \
-		jq '.["outbounds"][0] | .["settings"] | .["vnext"][0] | .address')"
+		jq -r '.["outbounds"][0] | .["settings"] | .["vnext"][0] | .address')"
 
 	_led_timer_on
 	_led_status
@@ -151,7 +151,7 @@ check_restricted_host() {
 	while true; do
 		_chk_cnt=$(($_chk_cnt+1))
 
-		if ping -c1 -W 10 -- openwrt.org > /dev/null 2>&1; then
+		if /usr/bin/curl -s --connect-timeout 10 -- openwrt.org > /dev/null 2>&1; then
 			break
 		elif [ $_chk_cnt -gt 5 ]; then
 			_led_err
@@ -166,7 +166,7 @@ check_restricted_host() {
 		-H "X-Requested-With:XMLHttpRequest" \
 		--retry 5 \
 		--connect-timeout 20 -- \
-		https://check.torproject.org/api/ip | jq '.IP')"
+		https://check.torproject.org/api/ip | jq -r '.IP')"
 
 	_status=$?
 
@@ -180,10 +180,13 @@ check_restricted_host() {
 	return $_status
 }
 
-cleanup() {
-	local _status=$1
-	[ -f "$_FLOCK_FILE" ] && rm -f "$_FLOCK_FILE" 2>&1 > /dev/null
-	return $_status
+force_quit() {
+	_led_timer_off
+	exit 1
+}
+
+quit() {
+	_cleanup
 }
 
 {
@@ -195,7 +198,6 @@ cleanup() {
 					check_restricted_host
 				fi
 
-				cleanup $?
 				exit $?
 			fi
 
@@ -204,15 +206,12 @@ cleanup() {
 				check_restricted_host
 		else  # если выключен
 			if ! _is_enabled; then
-				cleanup $?
 				exit 0
 			fi
 
 			_disable_depends
 			disable_ruantiblock
 		fi
-
-		cleanup $?
 	fi
 }
 
