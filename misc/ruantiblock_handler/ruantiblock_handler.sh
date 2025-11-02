@@ -104,15 +104,6 @@ enable_ruantiblock() {
 	/usr/bin/ruantiblock start && /usr/bin/ruantiblock force-update
 	_status=$?
 
-#	local rule_name=$(uci add system blink_led_ruantiblock) 
-#	uci batch <<-EOF set system.$rule_name.name='blink_led_ruantiblock'
-#		set system.$rule_name.sysfs='red:power'
-#		set system.$rule_name.trigger='timer'
-#		set system.$rule_name.delayon='100'
-#		set system.$rule_name.delayoff='3000'
-#	EOF
-#	uci commit
-
 	if [ $_status -eq 0 ]; then
 		_led_ok
 	else
