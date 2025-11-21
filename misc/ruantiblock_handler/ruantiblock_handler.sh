@@ -1,7 +1,16 @@
 #!/bin/ash
 #######################
 
+# Обработка ошибок после завершения работы скрипта
+ENABLE_REBOOT_SYS="${ENABLE_REBOOT_SYS:=0}"
+ENABLE_RESTART_DEPENDS="${ENABLE_RESTART_DEPENDS:=0}"
+
 #######################
+
+_RETURN_OK=0
+_RETURN_ERR=1
+_RETURN_ERR_SERVICE=111
+_RETURN_ERR_NETWORK=112
 
 _FLOCK_FILE="/var/lock/$(basename ${0%%.sh})".lock
 _FLOCK_FD=200
@@ -13,32 +22,32 @@ trap force_quit SIGINT SIGTERM
 
 if [ ! -x /usr/bin/flock ]; then
 	echo "/usr/bin/flock is not found!"
-	exit 1
+	exit $_RETURN_ERR
 fi
 
 if [ ! -x /etc/init.d/ruantiblock ]; then
 	echo "/etc/init.d/ruantiblock is not found!"
-	exit 1
+	exit $_RETURN_ERR
 fi
 
 if [ ! -x /usr/bin/jq ]; then
 	echo "/usr/bin/jq is not found!"
-	exit 1
+	exit $_RETURN_ERR
 fi
 
 if [ ! -x /usr/bin/curl ]; then
 	echo "/usr/bin/curl is not found!"
-	exit 1
+	exit $_RETURN_ERR
 fi
 
 if [ ! -f /sys/kernel/debug/gpio ]; then
 	echo "/sys/kernel/debug/gpio is not found!"
-	exit 1
+	exit $_RETURN_ERR
 fi
 
 if [ ! -d /sys/class/leds/red:power ]; then
 	echo "/sys/class/leds/red:power is not found!"
-	exit 1
+	exit $_RETURN_ERR
 fi
 
 _led_timer_on() {
@@ -66,13 +75,13 @@ _button_ruantiblock_check() {
 				tr ' ' ':' |
 				cut -d ')' -f 2 |
 				cut -d ':' -f 4)" != "lo" ]]; then
-		return 1
+		return $_RETURN_ERR
 	fi
 }
 
 _is_enabled() {
 	if ! /etc/init.d/ruantiblock enabled; then
-		return 1
+		return $_RETURN_ERR
 	fi
 }
 
@@ -104,7 +113,7 @@ enable_ruantiblock() {
 	/usr/bin/ruantiblock start && /usr/bin/ruantiblock force-update
 	_status=$?
 
-	if [ $_status -eq 0 ]; then
+	if [ $_status -eq $_RETURN_OK ]; then
 		_led_ok
 	else
 		_led_err
@@ -146,7 +155,7 @@ check_restricted_host() {
 			break
 		elif [ $_chk_cnt -gt 5 ]; then
 			_led_err
-			return 1
+			return $_RETURN_ERR_NETWORK
 		else
 			sleep 1
 			continue
@@ -163,7 +172,7 @@ check_restricted_host() {
 
 	if [[ "_$vless_host_ip" != "_$recieved_ip" ]]; then
 		_led_err
-		return 1
+		return $_RETURN_ERR_NETWORK
 	fi
 
 	_led_ok
@@ -173,10 +182,48 @@ check_restricted_host() {
 
 force_quit() {
 	_led_timer_off
-	exit 1
+	exit $_RETURN_ERR
 }
 
 quit() {
+	local _status=$?
+
+	local _cnt=0
+	local _cnt_file="/tmp/ruantiblock/$(basename ${0%%.sh}).cnt"
+
+	# перезагрузка зависимостей, если что-то пошло не так с подключением
+	if [ $ENABLE_RESTART_DEPENDS -ne 0 ] && [ $_status -eq $_RETURN_ERR_NETWORK ]; then
+		if [ -f "$_cnt_file" ]; then
+			_cnt=$(cat "$_cnt_file")
+		fi
+
+		echo $(($_cnt+1)) > $_cnt_file
+
+		if [ $(cat "$_cnt_file") -gt 20 ]; then
+			_disable_depends && disable_ruantiblock
+			_enable_depends && enable_ruantiblock
+		fi
+
+	# перезагрузка устройства после прочих ошибок
+	elif [ $ENABLE_REBOOT_SYS -ne 0 ] && [ $_status -ne $_RETURN_OK ]; then
+
+		if [ -f "$_cnt_file" ]; then
+			_cnt=$(cat "$_cnt_file")
+		fi
+
+		echo $(($_cnt+1)) > $_cnt_file
+
+		if [ $(cat "$_cnt_file") -gt 20 ]; then
+			/sbin/reboot -d 60
+
+			# блокируем последующие запуски скрипта и ждем перезагрузки устройства
+			while true; do :; done
+		fi
+
+	else
+		[ -f "$_cnt_file" ] && rm -f "$_cnt_file" 2>&1 > /dev/null
+	fi
+
 	_cleanup
 }
 
@@ -197,7 +244,7 @@ quit() {
 				check_restricted_host
 		else  # если выключен
 			if ! _is_enabled; then
-				exit 0
+				exit $_RETURN_OK
 			fi
 
 			_disable_depends
