@@ -230,7 +230,7 @@ quit() {
 			_cnt=$(cat "$_cnt_file")
 		fi
 
-		echo $(($_cnt+1)) > $_cnt_file
+		echo $(($_cnt+1)) > "$_cnt_file"
 
 		if [ $(cat "$_cnt_file") -gt 20 ]; then
 			/sbin/reboot -d 60
