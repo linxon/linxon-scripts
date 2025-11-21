@@ -1,16 +1,23 @@
 #!/bin/ash
 #######################
+# Crontab rule example:
+#	*/5 * * * * /bin/ash -c "ENABLE_RESTART_DEPENDS=1 /usr/local/libexec/ruantiblock_handler.sh check-ip"
+#
+# Written by Yury Martynov (email@linxon.ru)
+#######################
 
 # Обработка ошибок после завершения работы скрипта
-ENABLE_REBOOT_SYS="${ENABLE_REBOOT_SYS:=0}"
+ENABLE_RESTART_NETWORK="${ENABLE_RESTART_NETWORK:=0}"
 ENABLE_RESTART_DEPENDS="${ENABLE_RESTART_DEPENDS:=0}"
+ENABLE_REBOOT_SYS="${ENABLE_REBOOT_SYS:=0}"
 
 #######################
 
 _RETURN_OK=0
 _RETURN_ERR=1
-_RETURN_ERR_SERVICE=111
-_RETURN_ERR_NETWORK=112
+_RETURN_ERR_SERVICE=110
+_RETURN_ERR_NETWORK=111
+_RETURN_ERR_NETWORK_VLESS=112
 
 _FLOCK_FILE="/var/lock/$(basename ${0%%.sh})".lock
 _FLOCK_FD=200
@@ -172,7 +179,7 @@ check_restricted_host() {
 
 	if [[ "_$vless_host_ip" != "_$recieved_ip" ]]; then
 		_led_err
-		return $_RETURN_ERR_NETWORK
+		return $_RETURN_ERR_NETWORK_VLESS
 	fi
 
 	_led_ok
@@ -191,13 +198,25 @@ quit() {
 	local _cnt=0
 	local _cnt_file="/tmp/ruantiblock/$(basename ${0%%.sh}).cnt"
 
-	# перезагрузка зависимостей, если что-то пошло не так с подключением
-	if [ $ENABLE_RESTART_DEPENDS -ne 0 ] && [ $_status -eq $_RETURN_ERR_NETWORK ]; then
+	# перезагрузка сетевых интерфейсов, если что-то пошло не так с подключением
+	if [ $ENABLE_RESTART_NETWORK -ne 0 ] && [ $_status -eq $_RETURN_ERR_NETWORK ]; then
 		if [ -f "$_cnt_file" ]; then
 			_cnt=$(cat "$_cnt_file")
 		fi
 
-		echo $(($_cnt+1)) > $_cnt_file
+		echo $(($_cnt+1)) > "$_cnt_file"
+
+		if [ $(cat "$_cnt_file") -gt 20 ]; then
+			/etc/init.d/network restart
+		fi
+
+	# перезагрузка зависимостей Ruantiblock, если что-то пошло не так с подключением
+	elif [ $ENABLE_RESTART_DEPENDS -ne 0 ] && [ $_status -eq $_RETURN_ERR_NETWORK_VLESS ]; then
+		if [ -f "$_cnt_file" ]; then
+			_cnt=$(cat "$_cnt_file")
+		fi
+
+		echo $(($_cnt+1)) > "$_cnt_file"
 
 		if [ $(cat "$_cnt_file") -gt 20 ]; then
 			_disable_depends && disable_ruantiblock
