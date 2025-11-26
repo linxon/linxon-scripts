@@ -15,6 +15,8 @@ ENABLE_REBOOT_SYS="${ENABLE_REBOOT_SYS:=0}"
 
 _RETURN_OK=0
 _RETURN_ERR=1
+_RETURN_TRUE=0
+_RETURN_FALSE=1
 _RETURN_ERR_SERVICE=110
 _RETURN_ERR_NETWORK=111
 _RETURN_ERR_NETWORK_VLESS=112
@@ -82,13 +84,13 @@ _button_ruantiblock_check() {
 				tr ' ' ':' |
 				cut -d ')' -f 2 |
 				cut -d ':' -f 4)" != "lo" ]]; then
-		return $_RETURN_ERR
+		return $_RETURN_FALSE
 	fi
 }
 
 _is_enabled() {
 	if ! /etc/init.d/ruantiblock enabled; then
-		return $_RETURN_ERR
+		return $_RETURN_FALSE
 	fi
 }
 
