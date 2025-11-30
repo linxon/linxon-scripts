@@ -3,6 +3,18 @@
 # Crontab rule example:
 #	*/5 * * * * /bin/ash -c "ENABLE_RESTART_DEPENDS=1 /usr/local/libexec/ruantiblock_handler.sh check-ip"
 #
+# OpenWrt init.d script example:
+#	#!/bin/sh /etc/rc.common
+#	USE_PROCD=1
+#	START=99
+#	STOP=01
+#	start_service() {
+#		procd_open_instance
+#		procd_set_param command /usr/local/libexec/ruantiblock_handler.sh check-ip
+#		procd_close_instance
+#	}
+#
+#
 # Written by Yury Martynov (email@linxon.ru)
 #######################
 
@@ -10,6 +22,8 @@
 ENABLE_RESTART_NETWORK="${ENABLE_RESTART_NETWORK:=0}"
 ENABLE_RESTART_DEPENDS="${ENABLE_RESTART_DEPENDS:=0}"
 ENABLE_REBOOT_SYS="${ENABLE_REBOOT_SYS:=0}"
+
+MAX_CHECKING_COUNT="${MAX_CHECKING_COUNT:=20}"
 
 #######################
 
@@ -24,8 +38,6 @@ _RETURN_ERR_NETWORK_VLESS=112
 _FLOCK_FILE="/var/lock/$(basename ${0%%.sh})".lock
 _FLOCK_FD=200
 
-eval "exec $_FLOCK_FD>$_FLOCK_FILE"
-
 trap quit EXIT
 trap force_quit SIGINT SIGTERM
 
@@ -36,11 +48,6 @@ fi
 
 if [ ! -x /etc/init.d/ruantiblock ]; then
 	echo "/etc/init.d/ruantiblock is not found!"
-	exit $_RETURN_ERR
-fi
-
-if [ ! -x /usr/bin/jq ]; then
-	echo "/usr/bin/jq is not found!"
 	exit $_RETURN_ERR
 fi
 
@@ -58,6 +65,13 @@ if [ ! -d /sys/class/leds/red:power ]; then
 	echo "/sys/class/leds/red:power is not found!"
 	exit $_RETURN_ERR
 fi
+
+_wait_lock() {
+	eval "exec $_FLOCK_FD>$_FLOCK_FILE"
+	/usr/bin/flock -x $_FLOCK_FD
+
+	return $?
+}
 
 _led_timer_on() {
 	echo 'timer' > '/sys/class/leds/red:power/trigger'
@@ -78,17 +92,18 @@ _led_err() {
 	echo '1000' > '/sys/class/leds/red:power/delay_off'
 }
 
-_button_ruantiblock_check() {
+_get_button_status() {
 	if [[ "$(cat /sys/kernel/debug/gpio |
 				grep -E "\|mode" |
 				tr ' ' ':' |
 				cut -d ')' -f 2 |
 				cut -d ':' -f 4)" != "lo" ]]; then
+
 		return $_RETURN_FALSE
 	fi
 }
 
-_is_enabled() {
+_is_srv_enabled() {
 	if ! /etc/init.d/ruantiblock enabled; then
 		return $_RETURN_FALSE
 	fi
@@ -151,7 +166,7 @@ check_restricted_host() {
 
 	local recieved_ip=
 	local vless_host_ip="$(cat /etc/xray/config.json | \
-		jq -r '.["outbounds"][0] | .["settings"] | .["vnext"][0] | .address')"
+		jsonfilter -e '$.outbounds.*.settings.vnext.*.address')"
 
 	_led_timer_on
 	_led_status
@@ -172,10 +187,10 @@ check_restricted_host() {
 	done
 
 	recieved_ip="$(/usr/bin/curl -s \
-		-H "X-Requested-With:XMLHttpRequest" \
+		-H 'X-Requested-With:XMLHttpRequest' \
 		--retry 5 \
 		--connect-timeout 20 -- \
-		https://check.torproject.org/api/ip | jq -r '.IP')"
+		https://check.torproject.org/api/ip | jsonfilter -e '$.IP')"
 
 	_status=$?
 
@@ -206,11 +221,11 @@ quit() {
 			_cnt=$(cat "$_cnt_file")
 		fi
 
-		echo $(($_cnt+1)) > "$_cnt_file"
-
-		if [ $(cat "$_cnt_file") -gt 20 ]; then
-			/etc/init.d/network restart
+		if [ $_cnt -gt $MAX_CHECKING_COUNT ]; then
+			/etc/init.d/network restart # TODO: сделать перезагрузку только WAN интерфейсов, а не всей сети
 		fi
+
+		echo $(($_cnt+1)) > "$_cnt_file"
 
 	# перезагрузка зависимостей Ruantiblock, если что-то пошло не так с подключением
 	elif [ $ENABLE_RESTART_DEPENDS -ne 0 ] && [ $_status -eq $_RETURN_ERR_NETWORK_VLESS ]; then
@@ -218,28 +233,24 @@ quit() {
 			_cnt=$(cat "$_cnt_file")
 		fi
 
-		echo $(($_cnt+1)) > "$_cnt_file"
-
-		if [ $(cat "$_cnt_file") -gt 20 ]; then
-			_disable_depends && disable_ruantiblock
+		if [ $_cnt -gt $MAX_CHECKING_COUNT ]; then
+			disable_ruantiblock && _disable_depends
 			_enable_depends && enable_ruantiblock
 		fi
 
+		echo $(($_cnt+1)) > "$_cnt_file"
+
 	# перезагрузка устройства после прочих ошибок
 	elif [ $ENABLE_REBOOT_SYS -ne 0 ] && [ $_status -ne $_RETURN_OK ]; then
-
 		if [ -f "$_cnt_file" ]; then
 			_cnt=$(cat "$_cnt_file")
 		fi
 
-		echo $(($_cnt+1)) > "$_cnt_file"
-
-		if [ $(cat "$_cnt_file") -gt 20 ]; then
+		if [ $_cnt -gt $MAX_CHECKING_COUNT ]; then
 			/sbin/reboot -d 60
-
-			# блокируем последующие запуски скрипта и ждем перезагрузки устройства
-			while true; do :; done
 		fi
+
+		echo $(($_cnt+1)) > "$_cnt_file"
 
 	else
 		[ -f "$_cnt_file" ] && rm -f "$_cnt_file" 2>&1 > /dev/null
@@ -248,30 +259,28 @@ quit() {
 	_cleanup
 }
 
-{
-	if flock -x $_FLOCK_FD; then
-		if _button_ruantiblock_check; then # если включен
-			if _is_enabled; then
+_wait_lock || exit $_RETURN_ERR
 
-				if [ "$1" == "check-ip" ]; then
-					check_restricted_host
-				fi
+if _get_button_status; then
+	if _is_srv_enabled; then
 
-				exit $?
-			fi
-
-			_enable_depends && \
-				enable_ruantiblock && \
-				check_restricted_host
-		else  # если выключен
-			if ! _is_enabled; then
-				exit $_RETURN_OK
-			fi
-
-			_disable_depends
-			disable_ruantiblock
+		if [ "$1" == "check-ip" ]; then
+			check_restricted_host
 		fi
+
+		exit $?
 	fi
-}
+
+	_enable_depends && \
+		enable_ruantiblock && \
+		check_restricted_host
+else
+	if ! _is_srv_enabled; then
+		exit $_RETURN_OK
+	fi
+
+	disable_ruantiblock
+	_disable_depends
+fi
 
 exit $?
