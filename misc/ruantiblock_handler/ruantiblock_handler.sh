@@ -73,6 +73,13 @@ _wait_lock() {
 	return $?
 }
 
+_sleep_n() {
+	local _status=$?
+	sleep $1
+
+	return $_status
+}
+
 _led_timer_on() {
 	echo 'timer' > '/sys/class/leds/red:power/trigger'
 }
@@ -112,7 +119,7 @@ _is_srv_enabled() {
 _enable_depends() {
 	/etc/init.d/xray enable
 	/etc/init.d/sslocal enable
-	/etc/init.d/xray start && /etc/init.d/sslocal start
+	/etc/init.d/xray start && _sleep_n 3 && /etc/init.d/sslocal start
 
 	return $?
 }
@@ -188,8 +195,8 @@ check_restricted_host() {
 
 	recieved_ip="$(/usr/bin/curl -s \
 		-H 'X-Requested-With:XMLHttpRequest' \
-		--retry 5 \
-		--connect-timeout 20 -- \
+		--retry 3 \
+		--connect-timeout 10 -- \
 		https://check.torproject.org/api/ip | jsonfilter -e '$.IP')"
 
 	_status=$?
@@ -206,6 +213,8 @@ check_restricted_host() {
 
 force_quit() {
 	_led_timer_off
+	_cleanup
+
 	exit $_RETURN_ERR
 }
 
